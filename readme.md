@@ -174,7 +174,7 @@ Register listeners with `net.on(eventName, callback)`.
 
 ## Server Setup
 
-`server.js` is a Node.js WebSocket server using the `ws` package.
+`server.js` is a Node.js WebSocket server using the `ws` package. Fork the repo on GitHub to get your own copy to deploy and modify, then:
 
 ```bash
 npm install ws
@@ -183,8 +183,8 @@ node server.js
 ```
 
 **Deploy to Render (free):**
-1. Push `server.js` + `package.json` to a GitHub repo
-2. Create a new Web Service on [Render](https://render.com)
+1. Fork the repo on GitHub
+2. Create a new Web Service on [Render](https://render.com) pointing at your fork
 3. Set start command: `node server.js`
 4. Your URL: `wss://your-service.onrender.com`
 
