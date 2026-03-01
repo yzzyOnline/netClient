@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>NetClient Demo Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #111; color: #eee; font-family: 'IBM Plex Sans', sans-serif; font-weight: 300; }
+
+        /* ── Back to docs bar ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: #0d0d0d;
+            border-bottom: 1px solid #222;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #00d97e;
+            text-decoration: none;
+            padding: 6px 12px;
+            border: 1px solid rgba(0,217,126,.3);
+            border-radius: 4px;
+            transition: background .15s;
+        }
+        .back-link:hover { background: rgba(0,217,126,.1); }
+        .topbar-title { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #555; letter-spacing: 1px; }
+        .topbar-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 3px;
+            background: rgba(255,255,255,.06);
+            color: #666;
+            letter-spacing: 1px;
+        }
+
+        /* ── Content ── */
+        .content { padding: 24px; }
+        h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+        p { font-size: 13px; color: #aaa; margin-bottom: 14px; line-height: 1.6; }
+        .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        button {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            padding: 7px 14px;
+            background: transparent;
+            border: 1px solid #333;
+            color: #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: border-color .15s, color .15s;
+        }
+        button:hover { border-color: #00d97e; color: #00d97e; }
+        input {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            padding: 7px 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #eee;
+            border-radius: 3px;
+            width: 120px;
+        }
+        input::placeholder { color: #444; }
+        #log {
+            height: 120px;
+            overflow-y: auto;
+            background: #0d0d0d;
+            border: 1px solid #222;
+            padding: 10px 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: #888;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+        canvas { background: #1a1a1a; display: block; border: 1px solid #222; border-radius: 4px; max-width: 100%; }
+    </style>
+</head>
+<body>
+
+<!-- ── Nav bar ── -->
+<div class="topbar">
+    <div class="topbar-left">
+        <a class="back-link" href="../">← Docs</a>
+        <span class="topbar-title">// NetClient</span>
+    </div>
+    <span class="topbar-badge">LIVE DEMO</span>
+</div>
+
+<div class="content">
+<h2>NetClient Demo Game</h2>
+<p>Create or join a room, then move your player with arrow keys or WASD.</p>
+<p style="color:#555;font-size:12px;font-family:'IBM Plex Mono',monospace;">Open in another tab or device and join your room code to see multiplayer in action.</p>
+
+<div class="controls" style="margin-top:16px;">
+    <button id="createBtn">Create Room</button>
+    <button id="joinBtn">Join Room</button>
+    <button id="colorBtn">Change Color</button>
+    <input id="roomInput" placeholder="Room ID">
+</div>
+
+<div id="log"></div>
+
+<canvas id="game" width="600" height="400"></canvas>
+</div>
+
+<script type="module" src="./demo.js"></script>
+</body>
+</html>
