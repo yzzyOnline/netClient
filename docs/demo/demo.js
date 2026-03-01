@@ -99,6 +99,7 @@ net.on("playerJoined", (playerId) => {
 var keysDown = {};
 document.addEventListener("keydown", function (e) {
     keysDown[e.key] = true;
+    console.log(e.key);
 });
 document.addEventListener("keyup", function (e) {
     delete keysDown[e.key];
@@ -114,10 +115,10 @@ function draw() {
 
         const me = players[myId];
 
-        if (keysDown["ArrowUp"] || keysDown["W"]) me.y -= 3;
-        if (keysDown["ArrowDown"] || keysDown["S"]) me.y += 3;
-        if (keysDown["ArrowLeft"] || keysDown["A"]) me.x -= 3;
-        if (keysDown["ArrowRight"] || keysDown["D"]) me.x += 3;
+        if (keysDown["ArrowUp"] || keysDown["w"]) me.y -= 3;
+        if (keysDown["ArrowDown"] || keysDown["s"]) me.y += 3;
+        if (keysDown["ArrowLeft"] || keysDown["a"]) me.x -= 3;
+        if (keysDown["ArrowRight"] || keysDown["d"]) me.x += 3;
         me.y = Math.max(0, Math.min(canvas.height - 20, me.y));
         me.x = Math.max(0, Math.min(canvas.width - 20, me.x));
         // Broadcast movement
