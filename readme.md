@@ -22,10 +22,12 @@ Lightweight WebSocket networking client for browser games. Rooms, relays, host m
 ## Installation
 
 Drop `netClient.js` into your project. No npm, no bundler required.
+
 ```html
 <!-- index.html -->
 <script type="module" src="./game.js"></script>
 ```
+
 ```js
 // game.js
 import NetClient from "./netClient.js";
@@ -34,6 +36,7 @@ import NetClient from "./netClient.js";
 ---
 
 ## Quick Start
+
 ```js
 import NetClient from "./netClient.js";
 
@@ -57,6 +60,7 @@ net.on("relay", (fromId, payload) => {
 ---
 
 ## Constructor
+
 ```js
 const net = new NetClient(url, gameName?);
 ```
@@ -66,26 +70,34 @@ const net = new NetClient(url, gameName?);
 | `url` | `string` | WebSocket server URL, e.g. `"wss://your-server.onrender.com"` |
 | `gameName` | `string` | Optional namespace. Rooms are auto-tagged `game:<gameName>`. Default: `"defaultGame"` |
 
+The `gameName` acts as a namespace — `listRooms()` automatically filters to only show rooms for the current `gameName`, so players from different games never see each other's lobbies.
+
 ### Instance Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `net.playerId` | `number \| null` | Your assigned player ID |
-| `net.roomId` | `string \| null` | Current room ID, or null |
-| `net.ownerId` | `number \| null` | Player ID of the room host |
-| `net.isHost` | `boolean` | True if you are the room host |
+| `net.playerId` | `number \| null` | Your assigned player ID. Set after `assignedId` fires. |
+| `net.roomId` | `string \| null` | Current room ID (5-character code), or `null`. |
+| `net.ownerId` | `number \| null` | Player ID of the current room host. |
+| `net.isHost` | `boolean` | `true` if you are the room host. |
 
 ---
 
 ## API Reference
 
 ### Connection
+
 ```js
 net.connect()      // Open the WebSocket connection
 net.disconnect()   // Close the connection
 ```
 
+`connect()` is non-blocking — listen for the `connected` event before calling room methods. The server immediately fires `assignedId` after the connection opens.
+
+If you navigate away or close the tab without calling `disconnect()`, the server detects the dropped connection via heartbeat and cleans up your room slot automatically.
+
 ### Rooms
+
 ```js
 net.createRoom(tags?, maxClients?, isPrivate?, metaData?)
 net.joinRoom(roomId)
@@ -97,12 +109,26 @@ net.listRooms(tags?)
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `tags` | `string[]` | `[]` | Extra tags. `game:<gameName>` is always added. |
-| `maxClients` | `number` | `8` | Max players including the host |
-| `isPrivate` | `boolean` | `false` | Hides room from `listRooms()` |
-| `metaData` | `object` | `{}` | Arbitrary JSON, e.g. `{ name: "My Lobby" }` |
+| `tags` | `string[]` | `[]` | Extra tags. `game:<gameName>` is always added automatically. |
+| `maxClients` | `number` | `8` | Max players including the host. |
+| `isPrivate` | `boolean` | `false` | If `true`, adds the `"private"` tag and hides the room from `listRooms()`. |
+| `metaData` | `object` | `{}` | Arbitrary JSON attached to the room, e.g. `{ name: "My Lobby" }`. |
+
+Room IDs are 5-character alphanumeric codes (e.g. `"AB3XY"`). Share the `roomId` from `roomCreated` with other players so they can call `joinRoom()`.
+
+`listRooms()` returns only public, non-closed rooms tagged with the current `gameName`. Pass additional tags to narrow results further:
+
+```js
+net.listRooms(["ranked"]);
+
+net.on("roomList", (rooms) => {
+  // each room has: roomId, ownerId, playerCount, maxClients, tags, metaData
+  rooms.forEach(r => console.log(r.roomId, r.playerCount, r.metaData));
+});
+```
 
 ### Messaging
+
 ```js
 net.sendRelay(payload)              // Broadcast to all players in room
 net.tellOwner(payload)              // Send privately to the host
@@ -110,65 +136,89 @@ net.tellPlayer(playerId, payload)   // Send privately to one player
 net.sendBinary(buffer)              // Send a raw ArrayBuffer
 ```
 
+**Binary messages** are forwarded to all other room members. The server prepends the sender's player ID as a 4-byte big-endian unsigned integer before forwarding. The `binary` event on recipients exposes the stripped `fromId` and the original buffer:
+
+```js
+// Sender
+const buf = new ArrayBuffer(8);
+const dv  = new DataView(buf);
+dv.setFloat32(0, player.x);
+dv.setFloat32(4, player.y);
+net.sendBinary(buf);
+
+// Receiver
+net.on("binary", (fromId, buffer) => {
+  const dv = new DataView(buffer);
+  const x  = dv.getFloat32(0);
+  const y  = dv.getFloat32(4);
+});
+```
+
+Use `sendBinary` for high-frequency data like position updates. Use `sendRelay` for lower-frequency events where JSON readability matters.
+
 ### Host Controls
 
-> Only take effect when `net.isHost === true`.
+> Only take effect when `net.isHost === true`. The server silently ignores these calls from non-hosts.
+
 ```js
 net.updateMeta(metaData)    // Merge new key/values into room metadata
 net.addTag(tag)             // Add a tag (e.g. "closed" to lock the room)
 net.removeTag(tag)          // Remove a tag
 ```
 
+`addTag("closed")` prevents new players from joining. It does not disconnect existing players. Use it when a match starts. `game:*` tags cannot be removed.
+
 ---
 
 ## Events
 
-Register listeners with `net.on(eventName, callback)`.
+Register listeners with `net.on(eventName, callback)`. Multiple listeners per event are supported.
 
 ### Connection Events
 
 | Event | Args | Description |
 |-------|------|-------------|
-| `connected` | — | WebSocket opened |
-| `disconnected` | — | WebSocket closed |
-| `assignedId` | `(playerId)` | Server assigned your ID |
-| `error` | `(message)` | Server error (room full, not found, etc.) |
+| `connected` | — | WebSocket opened. |
+| `disconnected` | — | WebSocket closed or lost. All state (`playerId`, `roomId`, etc.) is reset. |
+| `assignedId` | `(playerId: number)` | Server assigned you a unique numeric ID. |
+| `error` | `(message: string)` | Server error, e.g. `"Room full"`, `"Room does not exist"`, `"Room Closed"`. |
 
 ### Room Events
 
 | Event | Args | Description |
 |-------|------|-------------|
-| `roomCreated` | `(roomId, playerId, metaData)` | You created a room |
-| `roomJoined` | `(roomId, playerId, ownerId, maxClients, metaData)` | You joined a room |
-| `leftRoom` | `(roomId)` | You left the room |
-| `playerJoined` | `(playerId)` | Another player joined |
-| `playerLeft` | `(playerId)` | Another player left |
-| `roomList` | `(rooms)` | Response to `listRooms()` |
+| `roomCreated` | `(roomId, playerId, metaData)` | You successfully created a room. You are the host. |
+| `roomJoined` | `(roomId, playerId, ownerId, maxClients, metaData)` | You successfully joined a room. |
+| `leftRoom` | `(roomId)` | You left the room via `leaveRoom()`. |
+| `playerJoined` | `(playerId)` | Another player joined your room. |
+| `playerLeft` | `(playerId)` | Another player left or disconnected from the room. |
+| `roomList` | `(rooms)` | Response to `listRooms()`. Each room: `roomId`, `ownerId`, `playerCount`, `maxClients`, `tags`, `metaData`. |
 
 ### Host Events
 
 | Event | Args | Description |
 |-------|------|-------------|
-| `makeHost` | `(oldHostId)` | You were promoted to host |
-| `reassignedHost` | `(newHostId, oldHostId)` | Host changed (for non-hosts) |
-| `roomUpdated` | `(metaData)` | Host updated metadata |
-| `roomTagAdded` | `(tag, tags)` | Host added a tag |
-| `roomTagRemoved` | `(tag, tags)` | Host removed a tag |
+| `makeHost` | `(oldHostId)` | You were promoted to host. `net.isHost` is already `true` when this fires. |
+| `reassignedHost` | `(newHostId, oldHostId)` | Host changed (fires on all non-host players). |
+| `roomUpdated` | `(metaData)` | Host updated metadata via `updateMeta()`. Fires on all players. |
+| `roomTagAdded` | `(tag, tags)` | Host added a tag. `tags` is the full updated array. |
+| `roomTagRemoved` | `(tag, tags)` | Host removed a tag. `tags` is the full updated array. |
 
 ### Message Events
 
 | Event | Args | Description |
 |-------|------|-------------|
-| `relay` | `(fromId, payload)` | Another player called `sendRelay()` |
-| `tellOwner` | `(fromId, payload)` | A player sent a message to the host |
-| `tellPlayer` | `(fromId, payload)` | A player sent a message to you |
-| `binary` | `(fromId, buffer)` | Binary payload received |
+| `relay` | `(fromId, payload)` | Another player called `sendRelay()`. |
+| `tellOwner` | `(fromId, payload)` | A player sent a message to the host. Only fires on the host. |
+| `tellPlayer` | `(fromId, payload)` | A player called `tellPlayer()` targeting you. |
+| `binary` | `(fromId, buffer: ArrayBuffer)` | Binary payload received. The sender ID has been stripped from the buffer. |
 
 ---
 
 ## Server Setup
 
 `server.js` is a Node.js WebSocket server using the `ws` package. HTTP and WebSocket share a single port. Fork the repo on GitHub to get your own copy to deploy and modify, then:
+
 ```bash
 npm install ws
 node server.js
@@ -182,14 +232,15 @@ node server.js
 3. Set start command: `node server.js`
 4. Your URL: `wss://your-service.onrender.com`
 
-> **Cold starts:** Render's free tier spins down after 15 min of inactivity. Point an uptime monitor at `GET /wake` to keep the server alive — or expect the first connection after idle to take 30–60s.
+> **Cold starts:** Render's free tier spins down after 15 min of inactivity. Point an uptime monitor (e.g. UptimeRobot) at `GET /wake` every 5 minutes to keep the server alive — or expect the first connection after idle to take 30–60s.
 
 ### Wake Endpoint
 
-`GET /wake` is always public regardless of the origin whitelist:
+`GET /wake` is always public regardless of the origin whitelist. Use it to warm up the server before opening a WebSocket connection, or as a health check.
+
 ```js
 await fetch("https://your-server.onrender.com/wake");
-// { "status": "awake", "timestamp": 1234567890 }
+// → { "status": "awake", "timestamp": 1234567890123 }
 ```
 
 Also works over WebSocket — send `{ type: "wake" }`, receive `{ type: "awake", timestamp, playerId }`.
@@ -197,6 +248,7 @@ Also works over WebSocket — send `{ type: "wake" }`, receive `{ type: "awake",
 ### Origin Whitelist
 
 Edit `ORIGIN_WHITELIST` in `server.js` to restrict which domains can connect. Origins must include the protocol:
+
 ```js
 const ORIGIN_WHITELIST = [
   "https://yourgame.com",
@@ -206,15 +258,26 @@ const ORIGIN_WHITELIST = [
 
 Set to `[]` or `null` to allow all origins. `GET /wake` is always public regardless.
 
-**Environment variables:**
+### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `8080` | Port the server listens on. Shared by HTTP and WebSocket. Set automatically by Render. |
 
+### Server Behaviour
+
+**Heartbeat / Timeout** — The server pings all connected clients every 30 seconds. Clients that do not respond are terminated and removed from their room. `playerLeft` fires for players who drop without calling `leaveRoom()`.
+
+**Host Reassignment** — When the host disconnects or calls `leaveRoom()`, the server promotes the first remaining client to host. The new host receives `makeHost`; all others receive `reassignedHost`. If no clients remain, the room is deleted.
+
+**Room Capacity** — `maxClients` includes the host. A room with `maxClients: 4` supports 1 host + 3 clients. Joining a full room returns an `error` event with `"Room full"`.
+
+**Binary Protocol** — The server prepends the sender's player ID as a 4-byte big-endian `uint32` to every binary message before forwarding it to all other room members. The `binary` event handler receives the sender ID and the original buffer (without the prepended bytes).
+
 ---
 
 ## Example: Full Game Loop
+
 ```js
 import NetClient from "./netClient.js";
 
