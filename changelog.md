@@ -15,11 +15,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **CORS headers** — HTTP responses now include proper `Access-Control-Allow-Origin` headers for browser clients on different ports or domains
 - **Shared HTTP + WebSocket server** — both run on a single port, required to support the wake endpoint alongside the WebSocket server
 
-### Fixed
-- `426 Upgrade Required` error when connecting from browser clients on Render/Railway
-- CORS policy errors blocking `fetch()` calls from browser-based clients
-
----
 
 ## [v1.0.0] - Initial Release
 
