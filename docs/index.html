@@ -1,363 +1,961 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔗%3C/text%3E%3C/svg%3E">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NetClient — Docs</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+  <script>
+    (async () => {
+      try {
+        const res = await fetch("https://gamebackend-dk2p.onrender.com/wake");
+        const data = await res.json();
+        console.log("[wake] Server awake at", new Date(data.timestamp).toLocaleTimeString());
+      } catch (e) {
+        console.warn("[wake] Server may be cold-starting...", e);
+      }
+    })();
+  </script>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔗%3C/text%3E%3C/svg%3E">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetClient — Docs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-:root {
-  --bg:       #f5f4f0;
-  --surf:     #edecea;
-  --ink:      #111110;
-  --dim:      #888680;
-  --line:     #dddbd6;
-  --green:    #00875a;
-  --green-bg: #e6f5f0;
-  --blue:     #0057cc;
-  --blue-bg:  #e8f0fb;
-  --red:      #c0392b;
-  --red-bg:   #fbeaea;
-  --yellow:   #7a5800;
-  --yellow-bg:#fdf5e0;
-  --code-bg:  #1c1c1e;
-  --code-txt: #e8e8e2;
-  --sidebar:  240px;
-}
+    html {
+      scroll-behavior: smooth;
+    }
 
-body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-weight: 300;
-  line-height: 1.7;
-  font-size: 15px;
-}
+    :root {
+      --bg: #f5f4f0;
+      --surf: #edecea;
+      --ink: #111110;
+      --dim: #888680;
+      --line: #dddbd6;
+      --green: #00875a;
+      --green-bg: #e6f5f0;
+      --blue: #0057cc;
+      --blue-bg: #e8f0fb;
+      --red: #c0392b;
+      --red-bg: #fbeaea;
+      --yellow: #7a5800;
+      --yellow-bg: #fdf5e0;
+      --code-bg: #1c1c1e;
+      --code-txt: #e8e8e2;
+      --sidebar: 240px;
+    }
 
-.layout { display: flex; min-height: 100vh; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      font-size: 15px;
+    }
 
-/* ── Sidebar ── */
-aside {
-  width: var(--sidebar);
-  flex-shrink: 0;
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  background: var(--ink);
-  overflow-y: auto;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-}
-aside::-webkit-scrollbar { width: 4px; }
-aside::-webkit-scrollbar-track { background: transparent; }
-aside::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
 
-.aside-head { padding: 28px 24px 20px; border-bottom: 1px solid #222; }
-.aside-logo {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px; font-weight: 600; color: #fff;
-  letter-spacing: 1px; text-decoration: none; display: block;
-}
-.aside-logo span { color: #00d97e; }
-.aside-version { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #555; margin-top: 4px; letter-spacing: 1px; }
+    /* ── Sidebar ── */
+    aside {
+      width: var(--sidebar);
+      flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      background: var(--ink);
+      overflow-y: auto;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+    }
 
-nav.side-nav { padding: 16px 0 32px; flex: 1; }
-.nav-group { margin-bottom: 4px; }
-.nav-group-label {
-  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
-  letter-spacing: 2px; color: #444; padding: 12px 24px 6px; text-transform: uppercase;
-}
-.nav-group a {
-  display: block; font-size: 13px; color: #888; text-decoration: none;
-  padding: 5px 24px; border-left: 2px solid transparent;
-  transition: color .15s, border-color .15s, background .15s; font-weight: 300;
-}
-.nav-group a:hover { color: #fff; background: rgba(255,255,255,.04); }
-.nav-group a.active { color: #00d97e; border-left-color: #00d97e; background: rgba(0,217,126,.06); }
+    aside::-webkit-scrollbar {
+      width: 4px;
+    }
 
-/* ── Main ── */
-main { margin-left: var(--sidebar); flex: 1; max-width: 860px; padding: 64px 64px 120px; }
+    aside::-webkit-scrollbar-track {
+      background: transparent;
+    }
 
-.section { margin-bottom: 80px; scroll-margin-top: 32px; }
+    aside::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 2px;
+    }
 
-h1 { font-size: 38px; font-weight: 600; letter-spacing: -1px; line-height: 1.15; margin-bottom: 16px; color: var(--ink); }
-h1 .mono { font-family: 'IBM Plex Mono', monospace; font-weight: 400; color: var(--green); }
+    .aside-head {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid #222;
+    }
 
-h2 { font-size: 22px; font-weight: 600; margin-bottom: 16px; margin-top: 48px; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--ink); }
-h2:first-child { margin-top: 0; }
+    .aside-logo {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 1px;
+      text-decoration: none;
+      display: block;
+    }
 
-h3 { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; margin: 32px 0 10px; color: var(--ink); }
+    .aside-logo span {
+      color: #00d97e;
+    }
 
-p { margin-bottom: 14px; color: #333; }
-p:last-child { margin-bottom: 0; }
-a { color: var(--blue); text-decoration: none; }
-a:hover { text-decoration: underline; }
+    .aside-version {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: #555;
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
 
-/* ── Hero ── */
-.hero {
-  background: var(--ink); border-radius: 8px; padding: 40px 44px;
-  margin-bottom: 48px; position: relative; overflow: hidden;
-}
-.hero::before {
-  content: ''; position: absolute; top: -60px; right: -60px;
-  width: 260px; height: 260px;
-  background: radial-gradient(circle, rgba(0,217,126,.18) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero h1 { color: #fff; margin-bottom: 12px; }
-.hero p { color: rgba(255,255,255,.55); font-size: 16px; margin-bottom: 24px; }
-.hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
-.badge { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1px; padding: 4px 10px; border-radius: 3px; font-weight: 600; }
-.badge.green { background: rgba(0,217,126,.15); color: #00d97e; }
-.badge.blue  { background: rgba(0,140,255,.15);  color: #5ab4ff; }
-.badge.grey  { background: rgba(255,255,255,.08); color: #888; }
+    nav.side-nav {
+      padding: 16px 0 32px;
+      flex: 1;
+    }
 
-/* ── Callouts ── */
-.callout { border-radius: 6px; padding: 16px 20px; margin: 20px 0; border-left: 3px solid; font-size: 14px; }
-.callout.tip    { background: var(--green-bg);  border-color: var(--green);  color: #1a4a36; }
-.callout.note   { background: var(--blue-bg);   border-color: var(--blue);   color: #0a3060; }
-.callout.warn   { background: var(--yellow-bg); border-color: #e6a800;       color: var(--yellow); }
-.callout.danger { background: var(--red-bg);    border-color: var(--red);    color: var(--red); }
-.callout strong { font-weight: 600; display: block; margin-bottom: 4px; }
+    .nav-group {
+      margin-bottom: 4px;
+    }
 
-/* ── Code ── */
-pre {
-  background: var(--code-bg); border-radius: 7px; padding: 22px 26px;
-  overflow-x: auto; margin: 16px 0 20px; border: 1px solid #2a2a2e;
-}
-pre code { font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.75; color: var(--code-txt); background: none; padding: 0; }
-code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: #e8e6e0; color: #b0360e; padding: 2px 6px; border-radius: 3px; }
+    .nav-group-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #444;
+      padding: 12px 24px 6px;
+      text-transform: uppercase;
+    }
 
-.kw  { color: #ff79c6; }
-.fn  { color: #50fa7b; }
-.str { color: #f1fa8c; }
-.cm  { color: #6272a4; font-style: italic; }
-.num { color: #bd93f9; }
-.cls { color: #8be9fd; }
-.prp { color: #ffb86c; }
+    .nav-group a {
+      display: block;
+      font-size: 13px;
+      color: #888;
+      text-decoration: none;
+      padding: 5px 24px;
+      border-left: 2px solid transparent;
+      transition: color .15s, border-color .15s, background .15s;
+      font-weight: 300;
+    }
 
-.code-wrap { position: relative; margin: 16px 0 20px; }
-.code-label {
-  font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1px;
-  color: #555; background: #252528; border: 1px solid #2a2a2e; border-bottom: none;
-  padding: 6px 16px; border-radius: 7px 7px 0 0; display: inline-block;
-}
-.code-wrap pre { margin: 0; border-radius: 0 7px 7px 7px; }
+    .nav-group a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, .04);
+    }
 
-/* ── Method cards ── */
-.method-card { border: 1px solid var(--line); border-radius: 7px; margin: 20px 0; overflow: hidden; }
-.method-head { background: var(--surf); padding: 14px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.method-badge { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 1.5px; padding: 3px 8px; border-radius: 3px; flex-shrink: 0; }
-.method-badge.call   { background: var(--blue-bg);   color: var(--blue);   }
-.method-badge.event  { background: var(--green-bg);  color: var(--green);  }
-.method-badge.host   { background: var(--yellow-bg); color: var(--yellow); }
-.method-sig { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--ink); word-break: break-all; }
-.method-body { padding: 16px 20px; }
-.method-body p { font-size: 14px; margin-bottom: 10px; }
+    .nav-group a.active {
+      color: #00d97e;
+      border-left-color: #00d97e;
+      background: rgba(0, 217, 126, .06);
+    }
 
-/* ── Table scroll wrapper ── */
-.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 10px 0; }
+    /* ── Main ── */
+    main {
+      margin-left: var(--sidebar);
+      flex: 1;
+      max-width: 860px;
+      padding: 64px 64px 120px;
+    }
 
-.params-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; min-width: 420px; }
-.params-table th { text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--dim); padding: 6px 12px; border-bottom: 1px solid var(--line); background: var(--surf); }
-.params-table td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.params-table tr:last-child td { border-bottom: none; }
-.params-table td:first-child { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--blue); }
-.params-table td:nth-child(2) { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--green); }
-.params-table td:nth-child(3) { color: #444; }
+    .section {
+      margin-bottom: 80px;
+      scroll-margin-top: 32px;
+    }
 
-/* ── Steps ── */
-.steps { counter-reset: step; list-style: none; }
-.steps li { counter-increment: step; display: flex; gap: 16px; margin-bottom: 24px; align-items: flex-start; }
-.steps li::before {
-  content: counter(step); font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
-  width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
-}
-.steps li > div { flex: 1; min-width: 0; }
-.steps li strong { display: block; font-weight: 600; margin-bottom: 6px; }
+    h1 {
+      font-size: 38px;
+      font-weight: 600;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      color: var(--ink);
+    }
 
-/* ── Feature grid ── */
-.feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin: 20px 0; }
-.feature-card { background: var(--surf); border: 1px solid var(--line); border-radius: 7px; padding: 18px 18px 14px; }
-.feature-icon { font-size: 22px; margin-bottom: 8px; }
-.feature-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 5px; }
-.feature-card p { font-size: 12px; color: var(--dim); margin: 0; line-height: 1.5; }
+    h1 .mono {
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 400;
+      color: var(--green);
+    }
 
-/* ── Events table ── */
-.events-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; min-width: 420px; }
-.events-table th { text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--dim); padding: 8px 14px; border-bottom: 2px solid var(--line); }
-.events-table td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.events-table tr:last-child td { border-bottom: none; }
-.events-table td:first-child { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--green); font-weight: 600; }
-.events-table td:nth-child(2) { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--dim); }
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      margin-top: 48px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink);
+    }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+    h2:first-child {
+      margin-top: 0;
+    }
 
-/* ── Mobile top bar ── */
-.mobile-bar {
-  display: none;
-  position: fixed; top: 0; left: 0; right: 0; height: 52px;
-  background: var(--ink); z-index: 150;
-  align-items: center; justify-content: space-between;
-  padding: 0 16px; border-bottom: 1px solid #222;
-}
-.mobile-bar-logo { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: #fff; letter-spacing: 1px; text-decoration: none; }
-.mobile-bar-logo span { color: #00d97e; }
+    h3 {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 32px 0 10px;
+      color: var(--ink);
+    }
 
-.menu-btn {
-  background: none; border: none; color: #888;
-  width: 36px; height: 36px; display: flex;
-  align-items: center; justify-content: center;
-  cursor: pointer; font-size: 20px; border-radius: 4px;
-  transition: color .15s; flex-shrink: 0;
-}
-.menu-btn:hover { color: #fff; }
+    p {
+      margin-bottom: 14px;
+      color: #333;
+    }
 
-/* ── Overlay ── */
-.sidebar-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.55); z-index: 99;
-  opacity: 0; transition: opacity .25s; pointer-events: none;
-}
-.sidebar-overlay.visible { opacity: 1; pointer-events: all; }
+    p:last-child {
+      margin-bottom: 0;
+    }
 
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .mobile-bar { display: flex; }
-  .sidebar-overlay { display: block; }
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
 
-  aside { transform: translateX(-100%); transition: transform .25s; top: 0; z-index: 100; }
-  aside.open { transform: translateX(0); }
+    a:hover {
+      text-decoration: underline;
+    }
 
-  main { margin-left: 0; padding: 72px 20px 80px; max-width: 100%; }
-  .hero { padding: 24px 20px; }
-  .hero p { font-size: 14px; }
-  h1 { font-size: 26px; }
-  h2 { font-size: 18px; margin-top: 32px; }
-  pre { padding: 14px 16px; }
-  pre code { font-size: 12px; }
-  .method-sig { font-size: 11px; }
-  .feature-grid { grid-template-columns: 1fr 1fr; }
-}
+    /* ── Hero ── */
+    .hero {
+      background: var(--ink);
+      border-radius: 8px;
+      padding: 40px 44px;
+      margin-bottom: 48px;
+      position: relative;
+      overflow: hidden;
+    }
 
-@media (max-width: 420px) {
-  .feature-grid { grid-template-columns: 1fr; }
-  main { padding: 68px 16px 80px; }
-}
-</style>
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(0, 217, 126, .18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      color: rgba(255, 255, 255, .55);
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+
+    .hero-badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    .badge.green {
+      background: rgba(0, 217, 126, .15);
+      color: #00d97e;
+    }
+
+    .badge.blue {
+      background: rgba(0, 140, 255, .15);
+      color: #5ab4ff;
+    }
+
+    .badge.grey {
+      background: rgba(255, 255, 255, .08);
+      color: #888;
+    }
+
+    /* ── Callouts ── */
+    .callout {
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-left: 3px solid;
+      font-size: 14px;
+    }
+
+    .callout.tip {
+      background: var(--green-bg);
+      border-color: var(--green);
+      color: #1a4a36;
+    }
+
+    .callout.note {
+      background: var(--blue-bg);
+      border-color: var(--blue);
+      color: #0a3060;
+    }
+
+    .callout.warn {
+      background: var(--yellow-bg);
+      border-color: #e6a800;
+      color: var(--yellow);
+    }
+
+    .callout.danger {
+      background: var(--red-bg);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .callout strong {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* ── Code ── */
+    pre {
+      background: var(--code-bg);
+      border-radius: 7px;
+      padding: 22px 26px;
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      border: 1px solid #2a2a2e;
+    }
+
+    pre code {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--code-txt);
+      background: none;
+      padding: 0;
+    }
+
+    code {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px;
+      background: #e8e6e0;
+      color: #b0360e;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .kw {
+      color: #ff79c6;
+    }
+
+    .fn {
+      color: #50fa7b;
+    }
+
+    .str {
+      color: #f1fa8c;
+    }
+
+    .cm {
+      color: #6272a4;
+      font-style: italic;
+    }
+
+    .num {
+      color: #bd93f9;
+    }
+
+    .cls {
+      color: #8be9fd;
+    }
+
+    .prp {
+      color: #ffb86c;
+    }
+
+    .code-wrap {
+      position: relative;
+      margin: 16px 0 20px;
+    }
+
+    .code-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: #555;
+      background: #252528;
+      border: 1px solid #2a2a2e;
+      border-bottom: none;
+      padding: 6px 16px;
+      border-radius: 7px 7px 0 0;
+      display: inline-block;
+    }
+
+    .code-wrap pre {
+      margin: 0;
+      border-radius: 0 7px 7px 7px;
+    }
+
+    /* ── Method cards ── */
+    .method-card {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+
+    .method-head {
+      background: var(--surf);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
+    }
+
+    .method-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .method-badge.call {
+      background: var(--blue-bg);
+      color: var(--blue);
+    }
+
+    .method-badge.event {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .method-badge.host {
+      background: var(--yellow-bg);
+      color: var(--yellow);
+    }
+
+    .method-sig {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      word-break: break-all;
+    }
+
+    .method-body {
+      padding: 16px 20px;
+    }
+
+    .method-body p {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    /* ── Table scroll wrapper ── */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 10px 0;
+    }
+
+    .params-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+      min-width: 420px;
+    }
+
+    .params-table th {
+      text-align: left;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--dim);
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surf);
+    }
+
+    .params-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    .params-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .params-table td:first-child {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--blue);
+    }
+
+    .params-table td:nth-child(2) {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--green);
+    }
+
+    .params-table td:nth-child(3) {
+      color: #444;
+    }
+
+    /* ── Steps ── */
+    .steps {
+      counter-reset: step;
+      list-style: none;
+    }
+
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      align-items: flex-start;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .steps li>div {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .steps li strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    /* ── Feature grid ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .feature-card {
+      background: var(--surf);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 18px 18px 14px;
+    }
+
+    .feature-icon {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .feature-card h4 {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .feature-card p {
+      font-size: 12px;
+      color: var(--dim);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* ── Events table ── */
+    .events-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 16px 0;
+      min-width: 420px;
+    }
+
+    .events-table th {
+      text-align: left;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--dim);
+      padding: 8px 14px;
+      border-bottom: 2px solid var(--line);
+    }
+
+    .events-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    .events-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .events-table td:first-child {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .events-table td:nth-child(2) {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--line);
+      border-radius: 3px;
+    }
+
+    /* ── Mobile top bar ── */
+    .mobile-bar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: var(--ink);
+      z-index: 150;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid #222;
+    }
+
+    .mobile-bar-logo {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 1px;
+      text-decoration: none;
+    }
+
+    .mobile-bar-logo span {
+      color: #00d97e;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      color: #888;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      border-radius: 4px;
+      transition: color .15s;
+      flex-shrink: 0;
+    }
+
+    .menu-btn:hover {
+      color: #fff;
+    }
+
+    /* ── Overlay ── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      z-index: 99;
+      opacity: 0;
+      transition: opacity .25s;
+      pointer-events: none;
+    }
+
+    .sidebar-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .mobile-bar {
+        display: flex;
+      }
+
+      .sidebar-overlay {
+        display: block;
+      }
+
+      aside {
+        transform: translateX(-100%);
+        transition: transform .25s;
+        top: 0;
+        z-index: 100;
+      }
+
+      aside.open {
+        transform: translateX(0);
+      }
+
+      main {
+        margin-left: 0;
+        padding: 72px 20px 80px;
+        max-width: 100%;
+      }
+
+      .hero {
+        padding: 24px 20px;
+      }
+
+      .hero p {
+        font-size: 14px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      h2 {
+        font-size: 18px;
+        margin-top: 32px;
+      }
+
+      pre {
+        padding: 14px 16px;
+      }
+
+      pre code {
+        font-size: 12px;
+      }
+
+      .method-sig {
+        font-size: 11px;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        padding: 68px 16px 80px;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Mobile top bar -->
-<div class="mobile-bar">
-  <a class="mobile-bar-logo" href="#intro"><span>//</span> NetClient</a>
-  <button class="menu-btn" id="menuBtn">☰</button>
-</div>
-
-<!-- Overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<div class="layout">
-<aside id="aside">
-  <div class="aside-head">
-    <a class="aside-logo" href="#intro"><span>//</span> NetClient</a>
-    <div class="aside-version">v1.0 · yzzy online</div>
+  <!-- Mobile top bar -->
+  <div class="mobile-bar">
+    <a class="mobile-bar-logo" href="#intro"><span>//</span> NetClient</a>
+    <button class="menu-btn" id="menuBtn">☰</button>
   </div>
-  <nav class="side-nav">
-    <div class="nav-group">
-      <div class="nav-group-label">Getting Started</div>
-      <a href="#intro" class="active">Introduction</a>
-      <a href="#install">Installation</a>
-      <a href="#quickstart">Quick Start</a>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-label">API Reference</div>
-      <a href="#constructor">Constructor</a>
-      <a href="#connection">Connection</a>
-      <a href="#rooms">Rooms</a>
-      <a href="#messaging">Messaging</a>
-      <a href="#events">Events</a>
-      <a href="#host-api">Host Controls</a>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-label">Server</div>
-      <a href="#server-setup">Server Setup</a>
-      <a href="#server-events">Server Events</a>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-label">Examples</div>
-      <a href="#example-basic">Basic Room</a>
-      <a href="#example-relay">Relaying Data</a>
-      <a href="#example-game">Full Game Loop</a>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-label">Playground</div>
-      <a href="./demo/" style="color:#00d97e; display:flex; align-items:center; gap:6px;">
-        <span>▶</span> Live Demo
-      </a>
-    </div>
-    <div class="nav-group">
-      <div class="nav-group-label">Links</div>
-      <a href="https://github.com/yzzyonline/netClient" target="_blank" style="display:flex; align-items:center; gap:6px;">
-        <span style="font-size:12px;">⎇</span> GitHub Repo
-      </a>
-      <a href="https://yzzy.online" target="_blank" style="color:#00d97e; display:flex; align-items:center; gap:6px;">
-        <span>↗</span> yzzy.online
-      </a>
-    </div>
-  </nav>
-</aside>
 
-<main>
+  <!-- Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <section class="section" id="intro">
-    <div class="hero">
-      <h1><span class="mono">NetClient</span></h1>
-      <p>A lightweight WebSocket networking library for browser games. Rooms, relays, host management, tags, metadata, and binary support — all in one small file.</p>
-      <div class="hero-badges">
-        <span class="badge green">Zero Dependencies</span>
-        <span class="badge blue">WebSocket</span>
-        <span class="badge grey">ES Module</span>
-        <span class="badge grey">Browser</span>
+  <div class="layout">
+    <aside id="aside">
+      <div class="aside-head">
+        <a class="aside-logo" href="#intro"><span>//</span> NetClient</a>
+        <div class="aside-version">v1.0 · yzzy online</div>
       </div>
-      <a href="./demo/" style="display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:10px 20px;background:rgba(0,217,126,.12);border:1px solid rgba(0,217,126,.35);border-radius:5px;color:#00d97e;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1px;text-decoration:none;transition:background .15s;" onmouseover="this.style.background='rgba(0,217,126,.22)'" onmouseout="this.style.background='rgba(0,217,126,.12)'">
-        ▶ &nbsp;Try the Live Demo
-      </a>
-    </div>
-    <div class="feature-grid">
-      <div class="feature-card"><div class="feature-icon">🚪</div><h4>Room Management</h4><p>Create, join, and leave rooms with max client limits and privacy controls.</p></div>
-      <div class="feature-card"><div class="feature-icon">📡</div><h4>Relay Messaging</h4><p>Broadcast JSON payloads to all players or target a specific player or the host.</p></div>
-      <div class="feature-card"><div class="feature-icon">👑</div><h4>Host Handoff</h4><p>Automatic host reassignment when the current host disconnects.</p></div>
-      <div class="feature-card"><div class="feature-icon">⚡</div><h4>Binary Support</h4><p>Send raw ArrayBuffers for high-frequency position updates and game state.</p></div>
-      <div class="feature-card"><div class="feature-icon">🏷️</div><h4>Tags & Metadata</h4><p>Tag rooms for filtering, and attach custom metadata like lobby names.</p></div>
-      <div class="feature-card"><div class="feature-icon">🔌</div><h4>Simple Events</h4><p>Clean <code>net.on()</code> event API — no boilerplate, just callbacks.</p></div>
-    </div>
-  </section>
+      <nav class="side-nav">
+        <div class="nav-group">
+          <div class="nav-group-label">Getting Started</div>
+          <a href="#intro" class="active">Introduction</a>
+          <a href="#install">Installation</a>
+          <a href="#quickstart">Quick Start</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">API Reference</div>
+          <a href="#constructor">Constructor</a>
+          <a href="#connection">Connection</a>
+          <a href="#rooms">Rooms</a>
+          <a href="#messaging">Messaging</a>
+          <a href="#events">Events</a>
+          <a href="#host-api">Host Controls</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Server</div>
+          <a href="#server-setup">Server Setup</a>
+          <a href="#server-wake">Wake Endpoint</a>
+          <a href="#server-whitelist">Origin Whitelist</a>
+          <a href="#server-events">Server Events</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Examples</div>
+          <a href="#example-basic">Basic Room</a>
+          <a href="#example-relay">Relaying Data</a>
+          <a href="#example-game">Full Game Loop</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Playground</div>
+          <a href="./demo/" style="color:#00d97e; display:flex; align-items:center; gap:6px;">
+            <span>▶</span> Live Demo
+          </a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Links</div>
+          <a href="https://github.com/yzzyonline/netClient" target="_blank"
+            style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:12px;">⎇</span> GitHub Repo
+          </a>
+          <a href="https://yzzy.online" target="_blank"
+            style="color:#00d97e; display:flex; align-items:center; gap:6px;">
+            <span>↗</span> yzzy.online
+          </a>
+        </div>
+      </nav>
+    </aside>
 
-  <section class="section" id="install">
-    <h2>Installation</h2>
-    <p>NetClient is a single ES module file with no dependencies. Drop it into your project and import it.</p>
-    <ol class="steps">
-      <li><div><strong>Download netClient.js</strong>Copy <code>netClient.js</code> into your project folder alongside your HTML file.</div></li>
-      <li><div><strong>Import it as an ES module</strong><div class="code-wrap"><div class="code-label">your-game.js</div><pre><code><span class="kw">import</span> NetClient <span class="kw">from</span> <span class="str">"./netClient.js"</span>;</code></pre></div><div class="callout note"><strong>Note</strong>Your script tag must use <code>type="module"</code> for ES module imports to work.</div></div></li>
-      <li><div><strong>Add <code>type="module"</code> to your script tag</strong><div class="code-wrap"><div class="code-label">index.html</div><pre><code><span class="str">&lt;script</span> <span class="prp">type</span>=<span class="str">"module"</span> <span class="prp">src</span>=<span class="str">"./your-game.js"</span><span class="str">&gt;&lt;/script&gt;</span></code></pre></div></div></li>
-      <li><div><strong>Point to a server</strong>NetClient connects to any WebSocket server that speaks its protocol. You can self-host <code>server.js</code> on Node.js, or deploy it to a free service like <a href="https://render.com" target="_blank">Render</a>.<div class="callout tip"><strong>Free hosting tip</strong>Render's free tier supports persistent WebSocket connections and is a great fit for hobby game servers. Deploy <code>server.js</code> with <code>node server.js</code>.</div></div></li>
-    </ol>
-  </section>
+    <main>
 
-  <section class="section" id="quickstart">
-    <h2>Quick Start</h2>
-    <p>Get two players connected and talking in under 20 lines.</p>
-    <div class="code-wrap"><div class="code-label">game.js</div>
-    <pre><code><span class="kw">import</span> NetClient <span class="kw">from</span> <span class="str">"./netClient.js"</span>;
+      <section class="section" id="intro">
+        <div class="hero">
+          <h1><span class="mono">NetClient</span></h1>
+          <p>A lightweight WebSocket networking library for browser games. Rooms, relays, host management, tags,
+            metadata, and binary support — all in one small file.</p>
+          <div class="hero-badges">
+            <span class="badge green">Zero Dependencies</span>
+            <span class="badge blue">WebSocket</span>
+            <span class="badge grey">ES Module</span>
+            <span class="badge grey">Browser</span>
+          </div>
+          <a href="./demo/"
+            style="display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:10px 20px;background:rgba(0,217,126,.12);border:1px solid rgba(0,217,126,.35);border-radius:5px;color:#00d97e;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1px;text-decoration:none;transition:background .15s;"
+            onmouseover="this.style.background='rgba(0,217,126,.22)'"
+            onmouseout="this.style.background='rgba(0,217,126,.12)'">
+            ▶ &nbsp;Try the Live Demo
+          </a>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🚪</div>
+            <h4>Room Management</h4>
+            <p>Create, join, and leave rooms with max client limits and privacy controls.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📡</div>
+            <h4>Relay Messaging</h4>
+            <p>Broadcast JSON payloads to all players or target a specific player or the host.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">👑</div>
+            <h4>Host Handoff</h4>
+            <p>Automatic host reassignment when the current host disconnects.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h4>Binary Support</h4>
+            <p>Send raw ArrayBuffers for high-frequency position updates and game state.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🏷️</div>
+            <h4>Tags & Metadata</h4>
+            <p>Tag rooms for filtering, and attach custom metadata like lobby names.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔌</div>
+            <h4>Simple Events</h4>
+            <p>Clean <code>net.on()</code> event API — no boilerplate, just callbacks.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="install">
+        <h2>Installation</h2>
+        <p>NetClient is a single ES module file with no dependencies. Drop it into your project and import it.</p>
+        <ol class="steps">
+          <li>
+            <div><strong>Download netClient.js</strong>Copy <code>netClient.js</code> into your project folder alongside
+              your HTML file.</div>
+          </li>
+          <li>
+            <div><strong>Import it as an ES module</strong>
+              <div class="code-wrap">
+                <div class="code-label">your-game.js</div>
+                <pre><code><span class="kw">import</span> NetClient <span class="kw">from</span> <span class="str">"./netClient.js"</span>;</code></pre>
+              </div>
+              <div class="callout note"><strong>Note</strong>Your script tag must use <code>type="module"</code> for ES
+                module imports to work.</div>
+            </div>
+          </li>
+          <li>
+            <div><strong>Add <code>type="module"</code> to your script tag</strong>
+              <div class="code-wrap">
+                <div class="code-label">index.html</div>
+                <pre><code><span class="str">&lt;script</span> <span class="prp">type</span>=<span class="str">"module"</span> <span class="prp">src</span>=<span class="str">"./your-game.js"</span><span class="str">&gt;&lt;/script&gt;</span></code></pre>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div><strong>Point to a server</strong>NetClient connects to any WebSocket server that speaks its protocol.
+              You can self-host <code>server.js</code> on Node.js, or deploy it to a free service like <a
+                href="https://render.com" target="_blank">Render</a>.<div class="callout tip"><strong>Free hosting
+                  tip</strong>Render's free tier supports persistent WebSocket connections and is a great fit for hobby
+                game servers. Deploy <code>server.js</code> with <code>node server.js</code>.</div>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section" id="quickstart">
+        <h2>Quick Start</h2>
+        <p>Get two players connected and talking in under 20 lines.</p>
+        <div class="code-wrap">
+          <div class="code-label">game.js</div>
+          <pre><code><span class="kw">import</span> NetClient <span class="kw">from</span> <span class="str">"./netClient.js"</span>;
 
 <span class="kw">const</span> net = <span class="kw">new</span> <span class="cls">NetClient</span>(<span class="str">"wss://your-server.onrender.com"</span>, <span class="str">"myGame"</span>);
 
@@ -377,130 +975,263 @@ net.<span class="fn">on</span>(<span class="str">"playerJoined"</span>, (playerI
 
 net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, payload) => {
   updatePlayer(fromId, payload);
-});</code></pre></div>
-  </section>
+});</code></pre>
+        </div>
+      </section>
 
-  <section class="section" id="constructor">
-    <h2>Constructor</h2>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">NEW</span><span class="method-sig">new NetClient(url, gameName?)</span></div>
-      <div class="method-body">
-        <p>Creates a new NetClient instance. Does not connect until <code>connect()</code> is called.</p>
-        <div class="table-scroll"><table class="params-table">
-          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
-          <tr><td>url</td><td>string</td><td>WebSocket server URL, e.g. <code>"wss://your-server.onrender.com"</code></td></tr>
-          <tr><td>gameName</td><td>string</td><td>Optional. Namespace for room filtering. Rooms are tagged <code>game:&lt;gameName&gt;</code> automatically. Defaults to <code>"defaultGame"</code>.</td></tr>
-        </table></div>
-        <pre><code><span class="kw">const</span> net = <span class="kw">new</span> <span class="cls">NetClient</span>(<span class="str">"wss://gamebackend-dk2p.onrender.com"</span>, <span class="str">"demoGame"</span>);</code></pre>
-      </div>
-    </div>
-    <h3>Instance Properties</h3>
-    <div class="table-scroll"><table class="params-table">
-      <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-      <tr><td>net.playerId</td><td>number | null</td><td>Your assigned player ID, set after <code>assignedId</code> fires.</td></tr>
-      <tr><td>net.roomId</td><td>string | null</td><td>The current room ID you are in, or null.</td></tr>
-      <tr><td>net.ownerId</td><td>number | null</td><td>The player ID of the current room host.</td></tr>
-      <tr><td>net.isHost</td><td>boolean</td><td>True if you are currently the room host.</td></tr>
-    </table></div>
-  </section>
+      <section class="section" id="constructor">
+        <h2>Constructor</h2>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">NEW</span><span class="method-sig">new NetClient(url,
+              gameName?)</span></div>
+          <div class="method-body">
+            <p>Creates a new NetClient instance. Does not connect until <code>connect()</code> is called.</p>
+            <div class="table-scroll">
+              <table class="params-table">
+                <tr>
+                  <th>Parameter</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+                <tr>
+                  <td>url</td>
+                  <td>string</td>
+                  <td>WebSocket server URL, e.g. <code>"wss://your-server.onrender.com"</code></td>
+                </tr>
+                <tr>
+                  <td>gameName</td>
+                  <td>string</td>
+                  <td>Optional. Namespace for room filtering. Rooms are tagged <code>game:&lt;gameName&gt;</code>
+                    automatically. Defaults to <code>"defaultGame"</code>.</td>
+                </tr>
+              </table>
+            </div>
+            <pre><code><span class="kw">const</span> net = <span class="kw">new</span> <span class="cls">NetClient</span>(<span class="str">"wss://gamebackend-dk2p.onrender.com"</span>, <span class="str">"demoGame"</span>);</code></pre>
+          </div>
+        </div>
+        <h3>Instance Properties</h3>
+        <div class="table-scroll">
+          <table class="params-table">
+            <tr>
+              <th>Property</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td>net.playerId</td>
+              <td>number | null</td>
+              <td>Your assigned player ID, set after <code>assignedId</code> fires.</td>
+            </tr>
+            <tr>
+              <td>net.roomId</td>
+              <td>string | null</td>
+              <td>The current room ID you are in, or null.</td>
+            </tr>
+            <tr>
+              <td>net.ownerId</td>
+              <td>number | null</td>
+              <td>The player ID of the current room host.</td>
+            </tr>
+            <tr>
+              <td>net.isHost</td>
+              <td>boolean</td>
+              <td>True if you are currently the room host.</td>
+            </tr>
+          </table>
+        </div>
+      </section>
 
-  <section class="section" id="connection">
-    <h2>Connection</h2>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.connect()</span></div>
-      <div class="method-body"><p>Opens the WebSocket connection to the server. The <code>connected</code> event fires when the socket is open. The server will immediately send an <code>assignedId</code> message with your unique player ID.</p></div>
-    </div>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.disconnect()</span></div>
-      <div class="method-body"><p>Closes the WebSocket connection. The <code>disconnected</code> event fires. If you are in a room, the server handles cleanup and host reassignment automatically.</p></div>
-    </div>
-  </section>
+      <section class="section" id="connection">
+        <h2>Connection</h2>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.connect()</span></div>
+          <div class="method-body">
+            <p>Opens the WebSocket connection to the server. The <code>connected</code> event fires when the socket is
+              open. The server will immediately send an <code>assignedId</code> message with your unique player ID.</p>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.disconnect()</span></div>
+          <div class="method-body">
+            <p>Closes the WebSocket connection. The <code>disconnected</code> event fires. If you are in a room, the
+              server handles cleanup and host reassignment automatically.</p>
+          </div>
+        </div>
+      </section>
 
-  <section class="section" id="rooms">
-    <h2>Rooms</h2>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.createRoom(tags?, maxClients?, isPrivate?, metaData?)</span></div>
-      <div class="method-body">
-        <p>Creates a new room and makes you the host. Fires <code>roomCreated</code> on success.</p>
-        <div class="table-scroll"><table class="params-table">
-          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
-          <tr><td>tags</td><td>string[]</td><td>Optional extra tags. The <code>game:&lt;gameName&gt;</code> tag is always added automatically.</td></tr>
-          <tr><td>maxClients</td><td>number</td><td>Maximum number of players including the host. Default: <code>8</code>.</td></tr>
-          <tr><td>isPrivate</td><td>boolean</td><td>If <code>true</code>, adds the <code>"private"</code> tag and hides the room from <code>listRooms()</code>.</td></tr>
-          <tr><td>metaData</td><td>object</td><td>Arbitrary JSON metadata, e.g. <code>{ name: "Bob's Lobby" }</code>.</td></tr>
-        </table></div>
-        <pre><code>net.<span class="fn">createRoom</span>([], <span class="num">8</span>, <span class="kw">false</span>, { name: <span class="str">"My Lobby"</span> });</code></pre>
-      </div>
-    </div>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.joinRoom(roomId)</span></div>
-      <div class="method-body">
-        <p>Joins an existing room by its ID. Fires <code>roomJoined</code> on success, or <code>error</code> if the room doesn't exist, is full, or is closed.</p>
-        <div class="table-scroll"><table class="params-table">
-          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
-          <tr><td>roomId</td><td>string</td><td>The 5-character room code returned by <code>roomCreated</code>.</td></tr>
-        </table></div>
-        <pre><code>net.<span class="fn">joinRoom</span>(<span class="str">"AB3XY"</span>);</code></pre>
-      </div>
-    </div>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.leaveRoom()</span></div>
-      <div class="method-body"><p>Leaves the current room. Fires <code>leftRoom</code> on this client. If you are the host, the server automatically promotes the next player and fires <code>makeHost</code> on their client.</p></div>
-    </div>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.listRooms(tags?)</span></div>
-      <div class="method-body">
-        <p>Requests a list of public, non-closed rooms. Filtered by the instance's <code>gameName</code> automatically. Fires <code>roomList</code> with results.</p>
-        <div class="table-scroll"><table class="params-table">
-          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
-          <tr><td>tags</td><td>string[]</td><td>Optional additional tags to filter by.</td></tr>
-        </table></div>
-        <pre><code>net.<span class="fn">listRooms</span>();
+      <section class="section" id="rooms">
+        <h2>Rooms</h2>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.createRoom(tags?, maxClients?, isPrivate?, metaData?)</span></div>
+          <div class="method-body">
+            <p>Creates a new room and makes you the host. Fires <code>roomCreated</code> on success.</p>
+            <div class="table-scroll">
+              <table class="params-table">
+                <tr>
+                  <th>Parameter</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+                <tr>
+                  <td>tags</td>
+                  <td>string[]</td>
+                  <td>Optional extra tags. The <code>game:&lt;gameName&gt;</code> tag is always added automatically.
+                  </td>
+                </tr>
+                <tr>
+                  <td>maxClients</td>
+                  <td>number</td>
+                  <td>Maximum number of players including the host. Default: <code>8</code>.</td>
+                </tr>
+                <tr>
+                  <td>isPrivate</td>
+                  <td>boolean</td>
+                  <td>If <code>true</code>, adds the <code>"private"</code> tag and hides the room from
+                    <code>listRooms()</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>metaData</td>
+                  <td>object</td>
+                  <td>Arbitrary JSON metadata, e.g. <code>{ name: "Bob's Lobby" }</code>.</td>
+                </tr>
+              </table>
+            </div>
+            <pre><code>net.<span class="fn">createRoom</span>([], <span class="num">8</span>, <span class="kw">false</span>, { name: <span class="str">"My Lobby"</span> });</code></pre>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.joinRoom(roomId)</span></div>
+          <div class="method-body">
+            <p>Joins an existing room by its ID. Fires <code>roomJoined</code> on success, or <code>error</code> if the
+              room doesn't exist, is full, or is closed.</p>
+            <div class="table-scroll">
+              <table class="params-table">
+                <tr>
+                  <th>Parameter</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+                <tr>
+                  <td>roomId</td>
+                  <td>string</td>
+                  <td>The 5-character room code returned by <code>roomCreated</code>.</td>
+                </tr>
+              </table>
+            </div>
+            <pre><code>net.<span class="fn">joinRoom</span>(<span class="str">"AB3XY"</span>);</code></pre>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.leaveRoom()</span></div>
+          <div class="method-body">
+            <p>Leaves the current room. Fires <code>leftRoom</code> on this client. If you are the host, the server
+              automatically promotes the next player and fires <code>makeHost</code> on their client.</p>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.listRooms(tags?)</span></div>
+          <div class="method-body">
+            <p>Requests a list of public, non-closed rooms. Filtered by the instance's <code>gameName</code>
+              automatically. Fires <code>roomList</code> with results.</p>
+            <div class="table-scroll">
+              <table class="params-table">
+                <tr>
+                  <th>Parameter</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+                <tr>
+                  <td>tags</td>
+                  <td>string[]</td>
+                  <td>Optional additional tags to filter by.</td>
+                </tr>
+              </table>
+            </div>
+            <pre><code>net.<span class="fn">listRooms</span>();
 
 net.<span class="fn">on</span>(<span class="str">"roomList"</span>, (rooms) => {
   rooms.<span class="fn">forEach</span>(r => console.<span class="fn">log</span>(r.roomId, r.playerCount, r.metaData));
 });</code></pre>
-      </div>
-    </div>
-  </section>
+          </div>
+        </div>
+      </section>
 
-  <section class="section" id="messaging">
-    <h2>Messaging</h2>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.sendRelay(payload)</span></div>
-      <div class="method-body">
-        <p>Broadcasts a JSON payload to every other player in the room. Fires <code>relay</code> on all recipients.</p>
-        <div class="table-scroll"><table class="params-table">
-          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
-          <tr><td>payload</td><td>object</td><td>Any JSON-serialisable object.</td></tr>
-        </table></div>
-        <pre><code>net.<span class="fn">sendRelay</span>({ x: player.x, y: player.y, anim: <span class="str">"run"</span> });</code></pre>
-      </div>
-    </div>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.tellOwner(payload)</span></div>
-      <div class="method-body">
-        <p>Sends a private JSON payload to the room host only. Fires <code>tellOwner</code> on the host.</p>
-        <pre><code>net.<span class="fn">tellOwner</span>({ action: <span class="str">"shoot"</span>, targetId: <span class="num">4521</span> });</code></pre>
-      </div>
-    </div>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.tellPlayer(playerId, payload)</span></div>
-      <div class="method-body">
-        <p>Sends a private JSON payload to one specific player in the room. Fires <code>tellPlayer</code> on the target.</p>
-        <div class="table-scroll"><table class="params-table">
-          <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
-          <tr><td>playerId</td><td>number</td><td>The numeric ID of the target player.</td></tr>
-          <tr><td>payload</td><td>object</td><td>Any JSON-serialisable object.</td></tr>
-        </table></div>
-        <pre><code>net.<span class="fn">tellPlayer</span>(<span class="num">98234</span>, { msg: <span class="str">"You were hit!"</span> });</code></pre>
-      </div>
-    </div>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.sendBinary(buffer)</span></div>
-      <div class="method-body">
-        <p>Sends a raw <code>ArrayBuffer</code> to all players in the room. The server prepends your player ID as a <code>uint32</code> before relaying. Fires <code>binary</code> on recipients.</p>
-        <pre><code><span class="kw">const</span> buf = <span class="kw">new</span> <span class="cls">ArrayBuffer</span>(<span class="num">8</span>);
+      <section class="section" id="messaging">
+        <h2>Messaging</h2>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.sendRelay(payload)</span></div>
+          <div class="method-body">
+            <p>Broadcasts a JSON payload to every other player in the room. Fires <code>relay</code> on all recipients.
+            </p>
+            <div class="table-scroll">
+              <table class="params-table">
+                <tr>
+                  <th>Parameter</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+                <tr>
+                  <td>payload</td>
+                  <td>object</td>
+                  <td>Any JSON-serialisable object.</td>
+                </tr>
+              </table>
+            </div>
+            <pre><code>net.<span class="fn">sendRelay</span>({ x: player.x, y: player.y, anim: <span class="str">"run"</span> });</code></pre>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.tellOwner(payload)</span></div>
+          <div class="method-body">
+            <p>Sends a private JSON payload to the room host only. Fires <code>tellOwner</code> on the host.</p>
+            <pre><code>net.<span class="fn">tellOwner</span>({ action: <span class="str">"shoot"</span>, targetId: <span class="num">4521</span> });</code></pre>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.tellPlayer(playerId, payload)</span></div>
+          <div class="method-body">
+            <p>Sends a private JSON payload to one specific player in the room. Fires <code>tellPlayer</code> on the
+              target.</p>
+            <div class="table-scroll">
+              <table class="params-table">
+                <tr>
+                  <th>Parameter</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+                <tr>
+                  <td>playerId</td>
+                  <td>number</td>
+                  <td>The numeric ID of the target player.</td>
+                </tr>
+                <tr>
+                  <td>payload</td>
+                  <td>object</td>
+                  <td>Any JSON-serialisable object.</td>
+                </tr>
+              </table>
+            </div>
+            <pre><code>net.<span class="fn">tellPlayer</span>(<span class="num">98234</span>, { msg: <span class="str">"You were hit!"</span> });</code></pre>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge call">CALL</span><span
+              class="method-sig">net.sendBinary(buffer)</span></div>
+          <div class="method-body">
+            <p>Sends a raw <code>ArrayBuffer</code> to all players in the room. The server prepends your player ID as a
+              <code>uint32</code> before relaying. Fires <code>binary</code> on recipients.
+            </p>
+            <pre><code><span class="kw">const</span> buf = <span class="kw">new</span> <span class="cls">ArrayBuffer</span>(<span class="num">8</span>);
 <span class="kw">const</span> dv  = <span class="kw">new</span> <span class="cls">DataView</span>(buf);
 dv.<span class="fn">setFloat32</span>(<span class="num">0</span>, player.x);
 dv.<span class="fn">setFloat32</span>(<span class="num">4</span>, player.y);
@@ -511,104 +1242,333 @@ net.<span class="fn">on</span>(<span class="str">"binary"</span>, (fromId, buffe
   <span class="kw">const</span> x  = dv.<span class="fn">getFloat32</span>(<span class="num">0</span>);
   <span class="kw">const</span> y  = dv.<span class="fn">getFloat32</span>(<span class="num">4</span>);
 });</code></pre>
-      </div>
-    </div>
-  </section>
+          </div>
+        </div>
+      </section>
 
-  <section class="section" id="events">
-    <h2>Events</h2>
-    <p>Register listeners with <code>net.on(eventName, callback)</code>. Multiple listeners per event are supported.</p>
+      <section class="section" id="events">
+        <h2>Events</h2>
+        <p>Register listeners with <code>net.on(eventName, callback)</code>. Multiple listeners per event are supported.
+        </p>
 
-    <h3>Connection Events</h3>
-    <div class="table-scroll"><table class="events-table">
-      <tr><th>Event</th><th>Callback Args</th><th>Description</th></tr>
-      <tr><td>connected</td><td><em>none</em></td><td>WebSocket opened successfully.</td></tr>
-      <tr><td>disconnected</td><td><em>none</em></td><td>WebSocket closed or lost.</td></tr>
-      <tr><td>assignedId</td><td>(playerId: number)</td><td>Server has assigned you a unique numeric ID.</td></tr>
-      <tr><td>error</td><td>(message: string)</td><td>Server sent an error, e.g. room full or not found.</td></tr>
-    </table></div>
+        <h3>Connection Events</h3>
+        <div class="table-scroll">
+          <table class="events-table">
+            <tr>
+              <th>Event</th>
+              <th>Callback Args</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td>connected</td>
+              <td><em>none</em></td>
+              <td>WebSocket opened successfully.</td>
+            </tr>
+            <tr>
+              <td>disconnected</td>
+              <td><em>none</em></td>
+              <td>WebSocket closed or lost.</td>
+            </tr>
+            <tr>
+              <td>assignedId</td>
+              <td>(playerId: number)</td>
+              <td>Server has assigned you a unique numeric ID.</td>
+            </tr>
+            <tr>
+              <td>error</td>
+              <td>(message: string)</td>
+              <td>Server sent an error, e.g. room full or not found.</td>
+            </tr>
+          </table>
+        </div>
 
-    <h3>Room Events</h3>
-    <div class="table-scroll"><table class="events-table">
-      <tr><th>Event</th><th>Callback Args</th><th>Description</th></tr>
-      <tr><td>roomCreated</td><td>(roomId, playerId, metaData)</td><td>You successfully created a room.</td></tr>
-      <tr><td>roomJoined</td><td>(roomId, playerId, ownerId, maxClients, metaData)</td><td>You successfully joined a room.</td></tr>
-      <tr><td>leftRoom</td><td>(roomId)</td><td>You have left the room.</td></tr>
-      <tr><td>playerJoined</td><td>(playerId)</td><td>Another player joined your room.</td></tr>
-      <tr><td>playerLeft</td><td>(playerId)</td><td>Another player left or disconnected.</td></tr>
-      <tr><td>roomList</td><td>(rooms: array)</td><td>Response to <code>listRooms()</code>.</td></tr>
-    </table></div>
+        <h3>Room Events</h3>
+        <div class="table-scroll">
+          <table class="events-table">
+            <tr>
+              <th>Event</th>
+              <th>Callback Args</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td>roomCreated</td>
+              <td>(roomId, playerId, metaData)</td>
+              <td>You successfully created a room.</td>
+            </tr>
+            <tr>
+              <td>roomJoined</td>
+              <td>(roomId, playerId, ownerId, maxClients, metaData)</td>
+              <td>You successfully joined a room.</td>
+            </tr>
+            <tr>
+              <td>leftRoom</td>
+              <td>(roomId)</td>
+              <td>You have left the room.</td>
+            </tr>
+            <tr>
+              <td>playerJoined</td>
+              <td>(playerId)</td>
+              <td>Another player joined your room.</td>
+            </tr>
+            <tr>
+              <td>playerLeft</td>
+              <td>(playerId)</td>
+              <td>Another player left or disconnected.</td>
+            </tr>
+            <tr>
+              <td>roomList</td>
+              <td>(rooms: array)</td>
+              <td>Response to <code>listRooms()</code>.</td>
+            </tr>
+          </table>
+        </div>
 
-    <h3>Host Events</h3>
-    <div class="table-scroll"><table class="events-table">
-      <tr><th>Event</th><th>Callback Args</th><th>Description</th></tr>
-      <tr><td>makeHost</td><td>(oldHostId)</td><td>Fired on you when promoted to host.</td></tr>
-      <tr><td>reassignedHost</td><td>(newHostId, oldHostId)</td><td>Fired on all non-host players when host changes.</td></tr>
-      <tr><td>roomUpdated</td><td>(metaData)</td><td>Host called <code>updateMeta()</code>.</td></tr>
-      <tr><td>roomTagAdded</td><td>(tag, tags)</td><td>Host added a tag.</td></tr>
-      <tr><td>roomTagRemoved</td><td>(tag, tags)</td><td>Host removed a tag.</td></tr>
-    </table></div>
+        <h3>Host Events</h3>
+        <div class="table-scroll">
+          <table class="events-table">
+            <tr>
+              <th>Event</th>
+              <th>Callback Args</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td>makeHost</td>
+              <td>(oldHostId)</td>
+              <td>Fired on you when promoted to host.</td>
+            </tr>
+            <tr>
+              <td>reassignedHost</td>
+              <td>(newHostId, oldHostId)</td>
+              <td>Fired on all non-host players when host changes.</td>
+            </tr>
+            <tr>
+              <td>roomUpdated</td>
+              <td>(metaData)</td>
+              <td>Host called <code>updateMeta()</code>.</td>
+            </tr>
+            <tr>
+              <td>roomTagAdded</td>
+              <td>(tag, tags)</td>
+              <td>Host added a tag.</td>
+            </tr>
+            <tr>
+              <td>roomTagRemoved</td>
+              <td>(tag, tags)</td>
+              <td>Host removed a tag.</td>
+            </tr>
+          </table>
+        </div>
 
-    <h3>Message Events</h3>
-    <div class="table-scroll"><table class="events-table">
-      <tr><th>Event</th><th>Callback Args</th><th>Description</th></tr>
-      <tr><td>relay</td><td>(fromId, payload)</td><td>Another player called <code>sendRelay()</code>.</td></tr>
-      <tr><td>tellOwner</td><td>(fromId, payload)</td><td>A player called <code>tellOwner()</code> — only fires on the host.</td></tr>
-      <tr><td>tellPlayer</td><td>(fromId, payload)</td><td>A player called <code>tellPlayer()</code> targeting you.</td></tr>
-      <tr><td>binary</td><td>(fromId, buffer: ArrayBuffer)</td><td>A player sent binary via <code>sendBinary()</code>.</td></tr>
-    </table></div>
-  </section>
+        <h3>Message Events</h3>
+        <div class="table-scroll">
+          <table class="events-table">
+            <tr>
+              <th>Event</th>
+              <th>Callback Args</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td>relay</td>
+              <td>(fromId, payload)</td>
+              <td>Another player called <code>sendRelay()</code>.</td>
+            </tr>
+            <tr>
+              <td>tellOwner</td>
+              <td>(fromId, payload)</td>
+              <td>A player called <code>tellOwner()</code> — only fires on the host.</td>
+            </tr>
+            <tr>
+              <td>tellPlayer</td>
+              <td>(fromId, payload)</td>
+              <td>A player called <code>tellPlayer()</code> targeting you.</td>
+            </tr>
+            <tr>
+              <td>binary</td>
+              <td>(fromId, buffer: ArrayBuffer)</td>
+              <td>A player sent binary via <code>sendBinary()</code>.</td>
+            </tr>
+          </table>
+        </div>
+      </section>
 
-  <section class="section" id="host-api">
-    <h2>Host Controls</h2>
-    <p>These methods only take effect if you are the current room host (<code>net.isHost === true</code>). The server silently ignores them otherwise.</p>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge host">HOST</span><span class="method-sig">net.updateMeta(metaData)</span></div>
-      <div class="method-body"><p>Merges new key/value pairs into the room's metadata object. Fires <code>roomUpdated</code> for all players.</p><pre><code>net.<span class="fn">updateMeta</span>({ name: <span class="str">"Round 2"</span>, map: <span class="str">"forest"</span> });</code></pre></div>
-    </div>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge host">HOST</span><span class="method-sig">net.addTag(tag)</span></div>
-      <div class="method-body"><p>Adds a string tag to the room. Fires <code>roomTagAdded</code> for all players.</p><pre><code>net.<span class="fn">addTag</span>(<span class="str">"closed"</span>);</code></pre></div>
-    </div>
-    <div class="method-card">
-      <div class="method-head"><span class="method-badge host">HOST</span><span class="method-sig">net.removeTag(tag)</span></div>
-      <div class="method-body"><p>Removes a tag from the room. Fires <code>roomTagRemoved</code> for all players. Cannot remove <code>game:*</code> tags.</p><pre><code>net.<span class="fn">removeTag</span>(<span class="str">"closed"</span>);</code></pre></div>
-    </div>
-  </section>
+      <section class="section" id="host-api">
+        <h2>Host Controls</h2>
+        <p>These methods only take effect if you are the current room host (<code>net.isHost === true</code>). The
+          server silently ignores them otherwise.</p>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge host">HOST</span><span
+              class="method-sig">net.updateMeta(metaData)</span></div>
+          <div class="method-body">
+            <p>Merges new key/value pairs into the room's metadata object. Fires <code>roomUpdated</code> for all
+              players.</p>
+            <pre><code>net.<span class="fn">updateMeta</span>({ name: <span class="str">"Round 2"</span>, map: <span class="str">"forest"</span> });</code></pre>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge host">HOST</span><span
+              class="method-sig">net.addTag(tag)</span></div>
+          <div class="method-body">
+            <p>Adds a string tag to the room. Fires <code>roomTagAdded</code> for all players.</p>
+            <pre><code>net.<span class="fn">addTag</span>(<span class="str">"closed"</span>);</code></pre>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge host">HOST</span><span
+              class="method-sig">net.removeTag(tag)</span></div>
+          <div class="method-body">
+            <p>Removes a tag from the room. Fires <code>roomTagRemoved</code> for all players. Cannot remove
+              <code>game:*</code> tags.
+            </p>
+            <pre><code>net.<span class="fn">removeTag</span>(<span class="str">"closed"</span>);</code></pre>
+          </div>
+        </div>
+      </section>
 
-  <section class="section" id="server-setup">
-    <h2>Server Setup</h2>
-    <p>The companion <code>server.js</code> is a Node.js WebSocket server using the <code>ws</code> package. It handles all room logic, host reassignment, and message routing.</p>
-    <ol class="steps">
-      <li><div><strong>Install dependencies</strong><pre><code>npm install ws</code></pre></div></li>
-      <li><div><strong>Start the server locally</strong><pre><code>node server.js
-<span class="cm"># WebSocket server listening on port 8080</span></code></pre></div></li>
-      <li><div><strong>Deploy to Render (free)</strong>Fork the repo on GitHub so you have your own copy to deploy and modify. Create a new Web Service on Render pointing at your fork, set the start command to <code>node server.js</code>, and deploy.<div class="callout warn"><strong>Cold starts</strong>Render's free tier spins down after 15 minutes of inactivity. The first connection after idle may take 30–60 seconds to wake the server.</div></div></li>
-    </ol>
-    <h3>Environment Variables</h3>
-    <div class="table-scroll"><table class="params-table">
-      <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
-      <tr><td>PORT</td><td>8080</td><td>Port the WebSocket server listens on. Render sets this automatically.</td></tr>
-    </table></div>
-  </section>
+      <section class="section" id="server-setup">
+        <h2>Server Setup</h2>
+        <p>The companion <code>server.js</code> is a Node.js WebSocket server using the <code>ws</code> package. It
+          handles all room logic, host reassignment, and message routing.</p>
+        <ol class="steps">
+          <li>
+            <div><strong>Install dependencies</strong>
+              <pre><code>npm install ws</code></pre>
+            </div>
+          </li>
+          <li>
+            <div><strong>Start the server locally</strong>
+              <pre><code>node server.js
+<span class="cm"># WebSocket server listening on port 8080</span></code></pre>
+            </div>
+          </li>
+          <li>
+            <div><strong>Deploy to Render (free)</strong>Fork the repo on GitHub so you have your own copy to deploy and
+              modify. Create a new Web Service on Render pointing at your fork, set the start command to
+              <code>node server.js</code>, and deploy.<div class="callout warn"><strong>Cold starts</strong>Render's
+                free tier spins down after 15 minutes of inactivity. Use the <a href="#server-wake">wake endpoint</a>
+                with an uptime monitor like UptimeRobot to prevent this — or expect the first connection after idle to
+                take 30–60 seconds.</div>
+            </div>
+          </li>
+        </ol>
+        <h3>Environment Variables</h3>
+        <div class="table-scroll">
+          <table class="params-table">
+            <tr>
+              <th>Variable</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td>PORT</td>
+              <td>8080</td>
+              <td>Port the WebSocket server listens on. Render sets this automatically.</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+      <section class="section" id="server-wake">
+        <h2>Wake Endpoint</h2>
+        <p>The server exposes a public HTTP endpoint at <code>GET /wake</code> that always returns a 200 response
+          regardless of the origin whitelist. Use it to keep the server alive on free hosting or check if it's online.
+        </p>
 
-  <section class="section" id="server-events">
-    <h2>Server Behaviour</h2>
-    <h3>Heartbeat / Timeout</h3>
-    <p>The server pings all connected clients every 30 seconds. Clients that do not respond with a pong are terminated and cleaned up from any room they are in.</p>
-    <h3>Host Reassignment</h3>
-    <p>When the host disconnects, the server promotes the first client in the room's client list to host. The new host receives <code>makeHost</code>. All other clients receive <code>reassignedHost</code>. If no clients remain, the room is deleted.</p>
-    <h3>Room Capacity</h3>
-    <p>The <code>maxClients</code> limit includes the host. A room with <code>maxClients: 4</code> supports 1 host + 3 clients.</p>
-    <h3>Binary Protocol</h3>
-    <p>When the server receives a binary message from a client, it prepends the sender's player ID as a 4-byte unsigned int (big-endian), then forwards the message to all other clients in the room. The <code>binary</code> event on recipients provides both the <code>fromId</code> and the raw <code>ArrayBuffer</code> (without the prepended ID).</p>
-  </section>
+        <h3>HTTP (fetch)</h3>
+        <p>Call this from any page before opening a WebSocket connection to warm up the server:</p>
+        <div class="code-wrap">
+          <div class="code-label">index.html</div>
+          <pre><code><span class="str">&lt;script&gt;</span>
+  (<span class="kw">async</span> () => {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> res  = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"https://your-server.onrender.com/wake"</span>);
+      <span class="kw">const</span> data = <span class="kw">await</span> res.<span class="fn">json</span>();
+      console.<span class="fn">log</span>(<span class="str">"[wake] Server awake at"</span>, <span class="kw">new</span> <span class="cls">Date</span>(data.timestamp).<span class="fn">toLocaleTimeString</span>());
+    } <span class="kw">catch</span> (e) {
+      console.<span class="fn">warn</span>(<span class="str">"[wake] Server may be cold-starting..."</span>, e);
+    }
+  })();
+<span class="str">&lt;/script&gt;</span></code></pre>
+        </div>
 
-  <section class="section" id="example-basic">
-    <h2>Example: Basic Room</h2>
-    <p>A minimal host/join flow with a shared room code.</p>
-    <div class="code-wrap"><div class="code-label">lobby.js</div>
-    <pre><code><span class="kw">import</span> NetClient <span class="kw">from</span> <span class="str">"./netClient.js"</span>;
+        <h3>Response</h3>
+        <pre><code>{ <span class="str">"status"</span>: <span class="str">"awake"</span>, <span class="str">"timestamp"</span>: <span class="num">1234567890123</span> }</code></pre>
+
+        <h3>WebSocket</h3>
+        <p>Wake also works over an open WebSocket connection:</p>
+        <pre><code>ws.<span class="fn">send</span>(<span class="cls">JSON</span>.<span class="fn">stringify</span>({ type: <span class="str">"wake"</span> }));
+<span class="cm">// server responds: { type: "awake", timestamp: 1234567890123, playerId: 98234 }</span></code></pre>
+
+        <div class="callout tip">
+          <strong>UptimeRobot</strong>
+          Point a free UptimeRobot monitor at <code>https://your-server.onrender.com/wake</code> with a 5-minute
+          interval to prevent Render from spinning down your server.
+        </div>
+      </section>
+
+      <section class="section" id="server-whitelist">
+        <h2>Origin Whitelist</h2>
+        <p>By default the whitelist is empty, which allows connections from any origin. To restrict access, add your
+          allowed domains to <code>ORIGIN_WHITELIST</code> at the top of <code>server.js</code>.</p>
+
+        <div class="code-wrap">
+          <div class="code-label">server.js</div>
+          <pre><code><span class="kw">const</span> ORIGIN_WHITELIST = [
+  <span class="str">"https://yourgame.com"</span>,
+  <span class="str">"http://localhost:3000"</span>,
+];</code></pre>
+        </div>
+
+        <div class="table-scroll">
+          <table class="params-table">
+            <tr>
+              <th>Value</th>
+              <th>Behaviour</th>
+            </tr>
+            <tr>
+              <td>[]</td>
+              <td>Allow all origins (default)</td>
+            </tr>
+            <tr>
+              <td>null</td>
+              <td>Allow all origins</td>
+            </tr>
+            <tr>
+              <td>["https://yourgame.com"]</td>
+              <td>Only allow listed origins</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="callout note">
+          <strong>Wake is always public</strong>
+          <code>GET /wake</code> bypasses the whitelist entirely so uptime monitors and external health checks can
+          always reach it regardless of origin.
+        </div>
+      </section>
+      <section class="section" id="server-events">
+        <h2>Server Behaviour</h2>
+        <h3>Heartbeat / Timeout</h3>
+        <p>The server pings all connected clients every 30 seconds. Clients that do not respond with a pong are
+          terminated and cleaned up from any room they are in.</p>
+        <h3>Host Reassignment</h3>
+        <p>When the host disconnects, the server promotes the first client in the room's client list to host. The new
+          host receives <code>makeHost</code>. All other clients receive <code>reassignedHost</code>. If no clients
+          remain, the room is deleted.</p>
+        <h3>Room Capacity</h3>
+        <p>The <code>maxClients</code> limit includes the host. A room with <code>maxClients: 4</code> supports 1 host +
+          3 clients.</p>
+        <h3>Binary Protocol</h3>
+        <p>When the server receives a binary message from a client, it prepends the sender's player ID as a 4-byte
+          unsigned int (big-endian), then forwards the message to all other clients in the room. The <code>binary</code>
+          event on recipients provides both the <code>fromId</code> and the raw <code>ArrayBuffer</code> (without the
+          prepended ID).</p>
+      </section>
+
+      <section class="section" id="example-basic">
+        <h2>Example: Basic Room</h2>
+        <p>A minimal host/join flow with a shared room code.</p>
+        <div class="code-wrap">
+          <div class="code-label">lobby.js</div>
+          <pre><code><span class="kw">import</span> NetClient <span class="kw">from</span> <span class="str">"./netClient.js"</span>;
 
 <span class="kw">const</span> net = <span class="kw">new</span> <span class="cls">NetClient</span>(<span class="str">"wss://your-server.onrender.com"</span>, <span class="str">"myGame"</span>);
 net.<span class="fn">connect</span>();
@@ -632,14 +1592,16 @@ net.<span class="fn">on</span>(<span class="str">"roomJoined"</span>, (roomId, p
 
 net.<span class="fn">on</span>(<span class="str">"playerJoined"</span>, (id) => console.<span class="fn">log</span>(<span class="str">"Player joined:"</span>, id));
 net.<span class="fn">on</span>(<span class="str">"playerLeft"</span>,  (id) => console.<span class="fn">log</span>(<span class="str">"Player left:"</span>,  id));
-net.<span class="fn">on</span>(<span class="str">"error"</span>,        (msg) => console.<span class="fn">warn</span>(<span class="str">"Error:"</span>, msg));</code></pre></div>
-  </section>
+net.<span class="fn">on</span>(<span class="str">"error"</span>,        (msg) => console.<span class="fn">warn</span>(<span class="str">"Error:"</span>, msg));</code></pre>
+        </div>
+      </section>
 
-  <section class="section" id="example-relay">
-    <h2>Example: Relaying State</h2>
-    <p>Broadcast your player's position and colour every frame, and apply incoming updates from other players.</p>
-    <div class="code-wrap"><div class="code-label">sync.js</div>
-    <pre><code><span class="kw">const</span> players = {};
+      <section class="section" id="example-relay">
+        <h2>Example: Relaying State</h2>
+        <p>Broadcast your player's position and colour every frame, and apply incoming updates from other players.</p>
+        <div class="code-wrap">
+          <div class="code-label">sync.js</div>
+          <pre><code><span class="kw">const</span> players = {};
 <span class="kw">let</span> myId = <span class="kw">null</span>;
 
 net.<span class="fn">on</span>(<span class="str">"assignedId"</span>, (id) => { myId = id; });
@@ -669,14 +1631,16 @@ net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, data) 
   <span class="fn">renderAll</span>(players);
   <span class="fn">requestAnimationFrame</span>(loop);
 }
-<span class="fn">loop</span>();</code></pre></div>
-  </section>
+<span class="fn">loop</span>();</code></pre>
+        </div>
+      </section>
 
-  <section class="section" id="example-game">
-    <h2>Example: Full Game Loop</h2>
-    <p>A complete pattern with room locking, host authority, and clean teardown.</p>
-    <div class="code-wrap"><div class="code-label">game.js</div>
-    <pre><code><span class="kw">import</span> NetClient <span class="kw">from</span> <span class="str">"./netClient.js"</span>;
+      <section class="section" id="example-game">
+        <h2>Example: Full Game Loop</h2>
+        <p>A complete pattern with room locking, host authority, and clean teardown.</p>
+        <div class="code-wrap">
+          <div class="code-label">game.js</div>
+          <pre><code><span class="kw">import</span> NetClient <span class="kw">from</span> <span class="str">"./netClient.js"</span>;
 
 <span class="kw">const</span> net = <span class="kw">new</span> <span class="cls">NetClient</span>(<span class="str">"wss://your-server.onrender.com"</span>, <span class="str">"shooter"</span>);
 <span class="kw">const</span> players = {};
@@ -709,45 +1673,49 @@ net.<span class="fn">on</span>(<span class="str">"tellOwner"</span>, (fromId, da
 
 net.<span class="fn">on</span>(<span class="str">"makeHost"</span>, () => { console.<span class="fn">log</span>(<span class="str">"You are now the host"</span>); });
 net.<span class="fn">on</span>(<span class="str">"playerLeft"</span>, (id) => { <span class="kw">delete</span> players[id]; });
-window.<span class="fn">addEventListener</span>(<span class="str">"beforeunload"</span>, () => net.<span class="fn">disconnect</span>());</code></pre></div>
+window.<span class="fn">addEventListener</span>(<span class="str">"beforeunload"</span>, () => net.<span class="fn">disconnect</span>());</code></pre>
+        </div>
 
-    <div class="callout tip">
-      <strong>Pattern: Host as authority</strong>
-      Use <code>tellOwner()</code> for actions that need validation (shooting, scoring) and <code>sendRelay()</code> for frequent state that doesn't need checking (position, animation). This keeps gameplay fair without a dedicated game server.
-    </div>
-  </section>
+        <div class="callout tip">
+          <strong>Pattern: Host as authority</strong>
+          Use <code>tellOwner()</code> for actions that need validation (shooting, scoring) and <code>sendRelay()</code>
+          for frequent state that doesn't need checking (position, animation). This keeps gameplay fair without a
+          dedicated game server.
+        </div>
+      </section>
 
-</main>
-</div>
+    </main>
+  </div>
 
-<script>
-// Sidebar active link on scroll
-const sections = document.querySelectorAll('.section');
-const navLinks = document.querySelectorAll('.nav-group a');
+  <script>
+    // Sidebar active link on scroll
+    const sections = document.querySelectorAll('.section');
+    const navLinks = document.querySelectorAll('.nav-group a');
 
-const obs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      navLinks.forEach(a => a.classList.remove('active'));
-      const link = document.querySelector(`.nav-group a[href="#${e.target.id}"]`);
-      if (link) link.classList.add('active');
-    }
-  });
-}, { threshold: 0.3 });
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          navLinks.forEach(a => a.classList.remove('active'));
+          const link = document.querySelector(`.nav-group a[href="#${e.target.id}"]`);
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { threshold: 0.3 });
 
-sections.forEach(s => obs.observe(s));
+    sections.forEach(s => obs.observe(s));
 
-// Mobile menu
-const menuBtn = document.getElementById('menuBtn');
-const aside = document.getElementById('aside');
-const overlay = document.getElementById('sidebarOverlay');
+    // Mobile menu
+    const menuBtn = document.getElementById('menuBtn');
+    const aside = document.getElementById('aside');
+    const overlay = document.getElementById('sidebarOverlay');
 
-function openMenu() { aside.classList.add('open'); overlay.classList.add('visible'); }
-function closeMenu() { aside.classList.remove('open'); overlay.classList.remove('visible'); }
+    function openMenu() { aside.classList.add('open'); overlay.classList.add('visible'); }
+    function closeMenu() { aside.classList.remove('open'); overlay.classList.remove('visible'); }
 
-menuBtn?.addEventListener('click', () => aside.classList.contains('open') ? closeMenu() : openMenu());
-overlay.addEventListener('click', closeMenu);
-aside.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
-</script>
+    menuBtn?.addEventListener('click', () => aside.classList.contains('open') ? closeMenu() : openMenu());
+    overlay.addEventListener('click', closeMenu);
+    aside.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+  </script>
 </body>
+
 </html>

@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script>
+    (async () => {
+      try {
+        const res = await fetch("https://gamebackend-dk2p.onrender.com/wake");
+        const data = await res.json();
+        console.log("[wake] Server awake at", new Date(data.timestamp).toLocaleTimeString());
+      } catch (e) {
+        console.warn("[wake] Server may be cold-starting...", e);
+      }
+    })();
+  </script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔗%3C/text%3E%3C/svg%3E">
     <meta charset="UTF-8">
     <title>NetClient Demo Game</title>

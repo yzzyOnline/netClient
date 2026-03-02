@@ -13,6 +13,8 @@ Lightweight WebSocket networking client for browser games. Rooms, relays, host m
 - 👑 **Host Handoff** — Automatic host reassignment when the current host disconnects
 - ⚡ **Binary Support** — Send raw `ArrayBuffer`s for high-frequency position updates
 - 🏷️ **Tags & Metadata** — Tag rooms for filtering and attach custom metadata
+- 🟢 **Wake Endpoint** — Public `GET /wake` for uptime monitors and cold-start prevention
+- 🔒 **Origin Whitelist** — Restrict which domains can connect via HTTP and WebSocket
 - 🔌 **Simple Events** — Clean `net.on()` API, no boilerplate
 
 ---
@@ -20,12 +22,10 @@ Lightweight WebSocket networking client for browser games. Rooms, relays, host m
 ## Installation
 
 Drop `netClient.js` into your project. No npm, no bundler required.
-
 ```html
 <!-- index.html -->
 <script type="module" src="./game.js"></script>
 ```
-
 ```js
 // game.js
 import NetClient from "./netClient.js";
@@ -34,7 +34,6 @@ import NetClient from "./netClient.js";
 ---
 
 ## Quick Start
-
 ```js
 import NetClient from "./netClient.js";
 
@@ -58,7 +57,6 @@ net.on("relay", (fromId, payload) => {
 ---
 
 ## Constructor
-
 ```js
 const net = new NetClient(url, gameName?);
 ```
@@ -82,14 +80,12 @@ const net = new NetClient(url, gameName?);
 ## API Reference
 
 ### Connection
-
 ```js
 net.connect()      // Open the WebSocket connection
 net.disconnect()   // Close the connection
 ```
 
 ### Rooms
-
 ```js
 net.createRoom(tags?, maxClients?, isPrivate?, metaData?)
 net.joinRoom(roomId)
@@ -107,7 +103,6 @@ net.listRooms(tags?)
 | `metaData` | `object` | `{}` | Arbitrary JSON, e.g. `{ name: "My Lobby" }` |
 
 ### Messaging
-
 ```js
 net.sendRelay(payload)              // Broadcast to all players in room
 net.tellOwner(payload)              // Send privately to the host
@@ -118,7 +113,6 @@ net.sendBinary(buffer)              // Send a raw ArrayBuffer
 ### Host Controls
 
 > Only take effect when `net.isHost === true`.
-
 ```js
 net.updateMeta(metaData)    // Merge new key/values into room metadata
 net.addTag(tag)             // Add a tag (e.g. "closed" to lock the room)
@@ -174,12 +168,12 @@ Register listeners with `net.on(eventName, callback)`.
 
 ## Server Setup
 
-`server.js` is a Node.js WebSocket server using the `ws` package. Fork the repo on GitHub to get your own copy to deploy and modify, then:
-
+`server.js` is a Node.js WebSocket server using the `ws` package. HTTP and WebSocket share a single port. Fork the repo on GitHub to get your own copy to deploy and modify, then:
 ```bash
 npm install ws
 node server.js
-# WebSocket server listening on port 8080
+# Server listening on port 8080
+# Wake endpoint: http://localhost:8080/wake
 ```
 
 **Deploy to Render (free):**
@@ -188,18 +182,39 @@ node server.js
 3. Set start command: `node server.js`
 4. Your URL: `wss://your-service.onrender.com`
 
-> **Note:** Render's free tier spins down after 15 min of inactivity. The first connection after idle may take 30–60s.
+> **Cold starts:** Render's free tier spins down after 15 min of inactivity. Point an uptime monitor at `GET /wake` to keep the server alive — or expect the first connection after idle to take 30–60s.
+
+### Wake Endpoint
+
+`GET /wake` is always public regardless of the origin whitelist:
+```js
+await fetch("https://your-server.onrender.com/wake");
+// { "status": "awake", "timestamp": 1234567890 }
+```
+
+Also works over WebSocket — send `{ type: "wake" }`, receive `{ type: "awake", timestamp, playerId }`.
+
+### Origin Whitelist
+
+Edit `ORIGIN_WHITELIST` in `server.js` to restrict which domains can connect. Origins must include the protocol:
+```js
+const ORIGIN_WHITELIST = [
+  "https://yourgame.com",
+  "http://localhost:3000",
+];
+```
+
+Set to `[]` or `null` to allow all origins. `GET /wake` is always public regardless.
 
 **Environment variables:**
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `8080` | Port the server listens on. Set automatically by Render. |
+| `PORT` | `8080` | Port the server listens on. Shared by HTTP and WebSocket. Set automatically by Render. |
 
 ---
 
 ## Example: Full Game Loop
-
 ```js
 import NetClient from "./netClient.js";
 
