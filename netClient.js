@@ -1,7 +1,6 @@
 // ============================================================================
-// NetClient.js
+// NetClient.js v 1.2.0
 // Lightweight WebSocket networking client for browser games
-// online at "wss://gamebackend-dk2p.onrender.com"
 // ============================================================================
 
 export default class NetClient {
@@ -38,6 +37,9 @@ export default class NetClient {
     // ------------------------------------------------------------------------
 
     connect() {
+        // Fix: guard against calling connect() while already connected
+        if (this.ws) return;
+
         this.ws = new WebSocket(this.url);
         this.ws.binaryType = "arraybuffer";
 
@@ -48,6 +50,8 @@ export default class NetClient {
             this.roomId = null;
             this.ownerId = null;
             this.isHost = false;
+            // Fix: null ws here so state is fully reset before emitting
+            this.ws = null;
             this.emit("disconnected");
         };
 
@@ -56,8 +60,8 @@ export default class NetClient {
     }
 
     disconnect() {
+        // ws will be nulled in the onclose handler
         this.ws?.close();
-        this.ws = null;
     }
 
     // ------------------------------------------------------------------------
@@ -99,6 +103,13 @@ export default class NetClient {
     updateMeta(metaData) {
         this._send({
             type: "updateMeta",
+            metaData
+        });
+    }
+
+    setMeta(metaData) {
+        this._send({
+            type: "setMeta",
             metaData
         });
     }
@@ -171,7 +182,7 @@ export default class NetClient {
                 this.roomId = data.roomId;
                 this.ownerId = data.playerId;
                 this.isHost = true;
-                this.emit("roomCreated", data.roomId, data.playerId, data.metaData);
+                this.emit("roomCreated", data.roomId, data.metaData);
                 break;
 
             case "roomJoined":
@@ -181,7 +192,6 @@ export default class NetClient {
                 this.emit(
                     "roomJoined",
                     data.roomId,
-                    data.playerId,
                     data.ownerId,
                     data.maxClients,
                     data.metaData

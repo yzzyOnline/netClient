@@ -1,5 +1,5 @@
 // ============================================================================
-// server.js v 1.1
+// server.js v 1.2.0
 // WebSocket game server with rooms, metadata, tags, binary relay, wake endpoint
 // ============================================================================
 
@@ -66,8 +66,19 @@ function sendJson(ws, obj) {
 function sendError(ws, message) { sendJson(ws, { type: "error", message }); }
 function heartbeat() { this.isAlive = true; }
 
+// ---------------------------------------------------------------------------
+// Generate a unique player ID not already in use
+// ---------------------------------------------------------------------------
+function generatePlayerId() {
+  let id;
+  do {
+    id = Math.floor(Math.random() * 1e9);
+  } while ([...wss.clients].some(c => c.id === id));
+  return id;
+}
+
 wss.on("connection", (ws, req) => {
-  ws.id = Math.floor(Math.random() * 1e9);
+  ws.id = generatePlayerId();
   ws.roomId = null;
   ws.isAlive = true;
 
@@ -155,6 +166,8 @@ wss.on("connection", (ws, req) => {
       case "tellOwner": {
         const room = rooms[ws.roomId];
         if (!room?.owner) return;
+        // Fix: do not deliver to self if the host calls tellOwner
+        if (room.owner === ws) return;
         sendJson(room.owner, { type: "tellOwner", from: ws.id, payload: data.payload });
         break;
       }
@@ -172,6 +185,17 @@ wss.on("connection", (ws, req) => {
         if (!room || room.owner !== ws) return;
         if (typeof data.metaData !== "object" || data.metaData === null) return;
         room.metaData = { ...room.metaData, ...data.metaData };
+        const payload = { type: "roomUpdated", roomId: ws.roomId, metaData: room.metaData };
+        sendJson(room.owner, payload);
+        room.clients.forEach(c => sendJson(c, payload));
+        break;
+      }
+
+      case "setMeta": {
+        const room = rooms[ws.roomId];
+        if (!room || room.owner !== ws) return;
+        if (typeof data.metaData !== "object" || data.metaData === null) return;
+        room.metaData = { ...data.metaData };
         const payload = { type: "roomUpdated", roomId: ws.roomId, metaData: room.metaData };
         sendJson(room.owner, payload);
         room.clients.forEach(c => sendJson(c, payload));

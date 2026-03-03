@@ -1,6 +1,6 @@
 import NetClient from "./netClient.js";
 
-// CHANGE THIS to your Render WebSocket URLvvvv
+// CHANGE THIS to your Render WebSocket URL
 const SERVER_URL = "wss://gamebackend-dk2p.onrender.com";
 
 const net = new NetClient(SERVER_URL, "demoGame");
@@ -27,6 +27,7 @@ const ctx = canvas.getContext("2d");
 // Connect immediately
 net.connect();
 log("Connecting to server...");
+
 // ----------------------
 // EVENT HANDLERS
 // ----------------------
@@ -39,26 +40,25 @@ net.on("assignedId", (id) => {
     log("Assigned ID: " + id);
 });
 
-net.on("roomCreated", (roomId, yourId) => {
+net.on("roomCreated", (roomId) => {
     log("Room created: " + roomId);
     players[myId] = {
         x: Math.random() * 500,
         y: Math.random() * 300,
-        color: "#" + Math.floor(Math.random()*16777215).toString(16)
+        color: "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")
     };
 });
 
-net.on("roomJoined", (roomId, yourId, ownerId, maxClients) => {
+net.on("roomJoined", (roomId, ownerId, maxClients) => {
     log(`Joined room ${roomId} | Host: ${ownerId} | Max: ${maxClients}`);
 
-    // Spawn your square
     players[myId] = {
         x: Math.floor(Math.random() * 100) * 5,
         y: Math.floor(Math.random() * 60) * 5,
-        color: "#" + Math.floor(Math.random()*16777215).toString(16)
+        color: "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")
     };
-    
-    net.sendRelay({ x: players[myId].x, y: players[myId].y, color : players[myId].color });
+
+    net.sendRelay({ x: players[myId].x, y: players[myId].y, color: players[myId].color });
 });
 
 net.on("playerLeft", (playerId) => {
@@ -75,20 +75,20 @@ net.on("reassignedHost", (newHostId, oldHostId) => {
 });
 
 net.on("relay", (fromId, payload) => {
-
     if (!players[fromId]) {
         players[fromId] = {
             x: 0, y: 0,
-            color: payload.color || "#" + Math.floor(Math.random()*16777215).toString(16)
+            color: payload.color || "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")
         };
     }
-    if (payload.color) players[fromId].color = payload.color;
-    if (payload.x) players[fromId].x = payload.x;
-    if (payload.y) players[fromId].y = payload.y;
+    if (payload.color !== undefined) players[fromId].color = payload.color;
+    if (payload.x !== undefined) players[fromId].x = payload.x;
+    if (payload.y !== undefined) players[fromId].y = payload.y;
 });
 
 net.on("playerJoined", (playerId) => {
     console.log("Player joined: " + playerId);
+    if (!players[myId]) return;
     const me = players[myId];
     net.sendRelay({ x: me.x, y: me.y, color: me.color });
 });
@@ -99,7 +99,6 @@ net.on("playerJoined", (playerId) => {
 var keysDown = {};
 document.addEventListener("keydown", function (e) {
     keysDown[e.key] = true;
-    console.log(e.key);
 });
 document.addEventListener("keyup", function (e) {
     delete keysDown[e.key];
@@ -111,18 +110,16 @@ document.addEventListener("keyup", function (e) {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (players[myId]){
-
+    if (players[myId]) {
         const me = players[myId];
 
-        if (keysDown["ArrowUp"] || keysDown["w"]) me.y -= 3;
-        if (keysDown["ArrowDown"] || keysDown["s"]) me.y += 3;
-        if (keysDown["ArrowLeft"] || keysDown["a"]) me.x -= 3;
-        if (keysDown["ArrowRight"] || keysDown["d"]) me.x += 3;
+        if (keysDown["ArrowUp"]    || keysDown["w"] || keysDown["W"]) me.y -= 3;
+        if (keysDown["ArrowDown"]  || keysDown["s"] || keysDown["S"]) me.y += 3;
+        if (keysDown["ArrowLeft"]  || keysDown["a"] || keysDown["A"]) me.x -= 3;
+        if (keysDown["ArrowRight"] || keysDown["d"] || keysDown["D"]) me.x += 3;
         me.y = Math.max(0, Math.min(canvas.height - 20, me.y));
-        me.x = Math.max(0, Math.min(canvas.width - 20, me.x));
-        // Broadcast movement
-        
+        me.x = Math.max(0, Math.min(canvas.width  - 20, me.x));
+
         net.sendRelay({ x: me.x, y: me.y });
     }
     for (const id in players) {
@@ -150,8 +147,7 @@ document.getElementById("joinBtn").onclick = () => {
 
 document.getElementById("colorBtn").onclick = () => {
     if (!players[myId]) return;
-
     const me = players[myId];
-    me.color = "#" + Math.floor(Math.random()*16777215).toString(16);
+    me.color = "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
     net.sendRelay({ color: me.color });
-}
+};

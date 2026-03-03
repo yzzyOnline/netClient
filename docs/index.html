@@ -226,7 +226,7 @@
     <aside id="aside">
       <div class="aside-head">
         <a class="aside-logo" href="#intro"><span>//</span> NetClient</a>
-        <div class="aside-version">v1.1 · yzzy online</div>
+        <div class="aside-version">v1.2.0 · yzzy online</div>
       </div>
       <nav class="side-nav">
         <div class="nav-group">
@@ -257,6 +257,10 @@
           <a href="#example-relay">Relaying Data</a>
           <a href="#example-binary">Binary Updates</a>
           <a href="#example-game">Full Game Loop</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-group-label">Known Limitations</div>
+          <a href="#limitations">Limitations</a>
         </div>
         <div class="nav-group">
           <div class="nav-group-label">Playground</div>
@@ -291,6 +295,7 @@
             <span class="badge blue">WebSocket</span>
             <span class="badge grey">ES Module</span>
             <span class="badge grey">Browser</span>
+            <span class="badge grey">v1.2.0</span>
           </div>
           <a href="./demo/"
             style="display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:10px 20px;background:rgba(0,217,126,.12);border:1px solid rgba(0,217,126,.35);border-radius:5px;color:#00d97e;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:1px;text-decoration:none;transition:background .15s;"
@@ -352,24 +357,20 @@
           <pre><code><span class="kw">import</span> NetClient <span class="kw">from</span> <span class="str">"./netClient.js"</span>;
 
 <span class="kw">const</span> net = <span class="kw">new</span> <span class="cls">NetClient</span>(<span class="str">"wss://your-server.onrender.com"</span>, <span class="str">"myGame"</span>);
-
 net.<span class="fn">connect</span>();
-
-net.<span class="fn">on</span>(<span class="str">"connected"</span>, () => {
-  net.<span class="fn">createRoom</span>([], <span class="num">4</span>, <span class="kw">false</span>);
-});
 
 net.<span class="fn">on</span>(<span class="str">"roomCreated"</span>, (roomId) => {
   console.<span class="fn">log</span>(<span class="str">"Room ready:"</span>, roomId); <span class="cm">// Share this code with others</span>
 });
 
-net.<span class="fn">on</span>(<span class="str">"playerJoined"</span>, (playerId) => {
-  net.<span class="fn">sendRelay</span>({ x: player.x, y: player.y, color: player.color });
+net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, payload) => {
+  <span class="fn">updatePlayer</span>(fromId, payload);
 });
 
-net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, payload) => {
-  updatePlayer(fromId, payload);
-});</code></pre>
+net.<span class="fn">on</span>(<span class="str">"error"</span>, (msg) => console.<span class="fn">warn</span>(<span class="str">"NetClient error:"</span>, msg));
+
+<span class="cm">// Trigger room creation from user action, not automatically on connect</span>
+document.<span class="fn">getElementById</span>(<span class="str">"createBtn"</span>).onclick = () => net.<span class="fn">createRoom</span>([], <span class="num">4</span>, <span class="kw">false</span>);</code></pre>
         </div>
       </section>
 
@@ -384,7 +385,7 @@ net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, payloa
               <table class="params-table">
                 <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
                 <tr><td>url</td><td>string</td><td>WebSocket server URL, e.g. <code>"wss://your-server.onrender.com"</code></td></tr>
-                <tr><td>gameName</td><td>string</td><td>Optional. Rooms are auto-tagged <code>game:&lt;gameName&gt;</code>. <code>listRooms()</code> filters by this automatically, so players from different games never see each other's lobbies. Defaults to <code>"defaultGame"</code>.</td></tr>
+                <tr><td>gameName</td><td>string</td><td>Optional. Rooms are auto-tagged <code>game:&lt;gameName&gt;</code>. <code>listRooms()</code> filters by this automatically so players from different games never see each other's lobbies. Defaults to <code>"defaultGame"</code> — always set this explicitly or instances sharing a server will see each other's rooms.</td></tr>
               </table>
             </div>
             <pre><code><span class="kw">const</span> net = <span class="kw">new</span> <span class="cls">NetClient</span>(<span class="str">"wss://gamebackend-dk2p.onrender.com"</span>, <span class="str">"demoGame"</span>);</code></pre>
@@ -395,9 +396,9 @@ net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, payloa
         <div class="table-scroll">
           <table class="params-table">
             <tr><th>Property</th><th>Type</th><th>Description</th></tr>
-            <tr><td>net.playerId</td><td>number | null</td><td>Your assigned player ID. Set after <code>assignedId</code> fires. <code>null</code> before connection.</td></tr>
-            <tr><td>net.roomId</td><td>string | null</td><td>The current room's 5-character code (e.g. <code>"AB3XY"</code>), or <code>null</code>.</td></tr>
-            <tr><td>net.ownerId</td><td>number | null</td><td>Player ID of the current room host.</td></tr>
+            <tr><td>net.playerId</td><td>number | null</td><td>Your assigned player ID. <code>null</code> before <code>assignedId</code> fires.</td></tr>
+            <tr><td>net.roomId</td><td>string | null</td><td>Current room's 5-character alphanumeric code (e.g. <code>"AB3XY"</code>), or <code>null</code>.</td></tr>
+            <tr><td>net.ownerId</td><td>number | null</td><td>Player ID of the current room host, or <code>null</code>.</td></tr>
             <tr><td>net.isHost</td><td>boolean</td><td><code>true</code> if you are the room host. Updated automatically on host handoff.</td></tr>
           </table>
         </div>
@@ -409,14 +410,14 @@ net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, payloa
         <div class="method-card">
           <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.connect()</span></div>
           <div class="method-body">
-            <p>Opens the WebSocket connection. The <code>connected</code> event fires when the socket is open, followed immediately by <code>assignedId</code> from the server.</p>
-            <p><code>connect()</code> is non-blocking — wait for <code>connected</code> or <code>assignedId</code> before calling room methods.</p>
+            <p>Opens the WebSocket connection. The <code>connected</code> event fires when the socket is open, followed immediately by <code>assignedId</code> from the server. Calling <code>connect()</code> while already connected is a no-op.</p>
+            <p><code>connect()</code> is non-blocking — do not call room methods until <code>connected</code> or <code>assignedId</code> fires.</p>
           </div>
         </div>
         <div class="method-card">
           <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.disconnect()</span></div>
           <div class="method-body">
-            <p>Closes the WebSocket connection. The <code>disconnected</code> event fires and all state (<code>playerId</code>, <code>roomId</code>, <code>ownerId</code>, <code>isHost</code>) is reset. The server handles room cleanup and host reassignment automatically.</p>
+            <p>Closes the WebSocket connection. All state (<code>playerId</code>, <code>roomId</code>, <code>ownerId</code>, <code>isHost</code>) is fully reset before <code>disconnected</code> fires. The server handles room cleanup and host reassignment automatically.</p>
             <div class="callout note">
               <strong>Implicit disconnect</strong>
               If the player closes the tab or navigates away without calling <code>disconnect()</code>, the server detects the dropped connection via its 30-second heartbeat and cleans up automatically. <code>playerLeft</code> fires for that player on all remaining clients.
@@ -436,7 +437,7 @@ net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, payloa
               <table class="params-table">
                 <tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr>
                 <tr><td>tags</td><td>string[]</td><td>[]</td><td>Extra tags. <code>game:&lt;gameName&gt;</code> is always added automatically.</td></tr>
-                <tr><td>maxClients</td><td>number</td><td>8</td><td>Maximum number of players <em>including</em> the host.</td></tr>
+                <tr><td>maxClients</td><td>number</td><td>8</td><td>Maximum number of players <em>including</em> the host. A room with <code>maxClients: 4</code> fits 1 host + 3 clients.</td></tr>
                 <tr><td>isPrivate</td><td>boolean</td><td>false</td><td>If <code>true</code>, adds the <code>"private"</code> tag and hides the room from <code>listRooms()</code>. Players can still join directly by room code.</td></tr>
                 <tr><td>metaData</td><td>object</td><td>{}</td><td>Arbitrary JSON attached to the room, e.g. <code>{ name: "Bob's Lobby", map: "desert" }</code>.</td></tr>
               </table>
@@ -448,7 +449,7 @@ net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, payloa
         <div class="method-card">
           <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.joinRoom(roomId)</span></div>
           <div class="method-body">
-            <p>Joins an existing room by its ID. Fires <code>roomJoined</code> on success, or <code>error</code> if the room doesn't exist, is full, or has the <code>"closed"</code> tag.</p>
+            <p>Joins an existing room by its ID. Fires <code>roomJoined</code> on success, or <code>error</code> if the room doesn't exist, is full, or has the <code>"closed"</code> tag. Room IDs are case-insensitive.</p>
             <div class="table-scroll">
               <table class="params-table">
                 <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
@@ -469,19 +470,19 @@ net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, payloa
         <div class="method-card">
           <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.listRooms(tags?)</span></div>
           <div class="method-body">
-            <p>Requests a list of public, non-closed rooms. The current <code>gameName</code> tag is included automatically. Fires <code>roomList</code> with results.</p>
+            <p>Requests a list of public rooms. Rooms tagged <code>"private"</code> or <code>"closed"</code> are always excluded. The current <code>gameName</code> tag is included automatically. Fires <code>roomList</code> with results.</p>
+            <div class="callout note"><strong>No built-in timeout</strong>If the server is slow or the response is lost, <code>roomList</code> will never fire. Register your listener before calling <code>listRooms()</code>, and implement a timeout in userland if needed.</div>
             <div class="table-scroll">
               <table class="params-table">
                 <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
                 <tr><td>tags</td><td>string[]</td><td>Optional additional tags to filter by, e.g. <code>["ranked"]</code>.</td></tr>
               </table>
             </div>
-            <pre><code>net.<span class="fn">listRooms</span>();
-
-net.<span class="fn">on</span>(<span class="str">"roomList"</span>, (rooms) => {
+            <pre><code>net.<span class="fn">on</span>(<span class="str">"roomList"</span>, (rooms) => {
   <span class="cm">// each room: roomId, ownerId, playerCount, maxClients, tags, metaData</span>
   rooms.<span class="fn">forEach</span>(r => console.<span class="fn">log</span>(r.roomId, r.playerCount + <span class="str">"/"</span> + r.maxClients, r.metaData));
-});</code></pre>
+});
+net.<span class="fn">listRooms</span>(); <span class="cm">// Always register listener before calling</span></code></pre>
           </div>
         </div>
       </section>
@@ -492,7 +493,7 @@ net.<span class="fn">on</span>(<span class="str">"roomList"</span>, (rooms) => {
         <div class="method-card">
           <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.sendRelay(payload)</span></div>
           <div class="method-body">
-            <p>Broadcasts a JSON payload to every other player in the room (including the host, if you are a client). Fires <code>relay</code> on all recipients.</p>
+            <p>Broadcasts a JSON payload to every other player in the room. The sender never receives their own message. Fires <code>relay</code> on all recipients.</p>
             <div class="table-scroll">
               <table class="params-table">
                 <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
@@ -506,7 +507,7 @@ net.<span class="fn">on</span>(<span class="str">"roomList"</span>, (rooms) => {
         <div class="method-card">
           <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.tellOwner(payload)</span></div>
           <div class="method-body">
-            <p>Sends a private JSON payload to the room host only. Fires <code>tellOwner</code> on the host. Use for actions that need host validation (shooting, scoring, state changes).</p>
+            <p>Sends a private JSON payload to the room host only. Fires <code>tellOwner</code> on the host. Has no effect if called by the host. Use for actions that need host validation (shooting, scoring, state changes).</p>
             <pre><code>net.<span class="fn">tellOwner</span>({ action: <span class="str">"shoot"</span>, targetId: <span class="num">4521</span> });</code></pre>
           </div>
         </div>
@@ -514,7 +515,7 @@ net.<span class="fn">on</span>(<span class="str">"roomList"</span>, (rooms) => {
         <div class="method-card">
           <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.tellPlayer(playerId, payload)</span></div>
           <div class="method-body">
-            <p>Sends a private JSON payload to one specific player. Fires <code>tellPlayer</code> on that player's client only.</p>
+            <p>Sends a private JSON payload to one specific player in the room. Fires <code>tellPlayer</code> on the target's client only.</p>
             <div class="table-scroll">
               <table class="params-table">
                 <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
@@ -529,7 +530,7 @@ net.<span class="fn">on</span>(<span class="str">"roomList"</span>, (rooms) => {
         <div class="method-card">
           <div class="method-head"><span class="method-badge call">CALL</span><span class="method-sig">net.sendBinary(buffer)</span></div>
           <div class="method-body">
-            <p>Sends a raw <code>ArrayBuffer</code> to all other players in the room. The server prepends the sender's player ID as a 4-byte big-endian <code>uint32</code> before forwarding. Recipients receive the original buffer (without the prepended ID) via the <code>binary</code> event.</p>
+            <p>Sends a raw <code>ArrayBuffer</code> to all other players in the room. The sender never receives their own message. The server prepends the sender's player ID as a 4-byte big-endian <code>uint32</code> before forwarding. Recipients receive the original buffer (without the prepended ID) via the <code>binary</code> event.</p>
             <p>Use binary for high-frequency data (position, physics) where JSON overhead matters. Use <code>sendRelay</code> for infrequent game events.</p>
             <pre><code><span class="cm">// Sender</span>
 <span class="kw">const</span> buf = <span class="kw">new</span> <span class="cls">ArrayBuffer</span>(<span class="num">8</span>);
@@ -543,7 +544,7 @@ net.<span class="fn">on</span>(<span class="str">"binary"</span>, (fromId, buffe
   <span class="kw">const</span> dv = <span class="kw">new</span> <span class="cls">DataView</span>(buffer);
   <span class="kw">const</span> x  = dv.<span class="fn">getFloat32</span>(<span class="num">0</span>);
   <span class="kw">const</span> y  = dv.<span class="fn">getFloat32</span>(<span class="num">4</span>);
-  updatePlayerPosition(fromId, x, y);
+  <span class="fn">updatePlayerPosition</span>(fromId, x, y);
 });</code></pre>
           </div>
         </div>
@@ -552,16 +553,16 @@ net.<span class="fn">on</span>(<span class="str">"binary"</span>, (fromId, buffe
       <!-- EVENTS -->
       <section class="section" id="events">
         <h2>Events</h2>
-        <p>Register listeners with <code>net.on(eventName, callback)</code>. Multiple listeners per event are supported and all will fire. There is no <code>off()</code> method — listeners persist for the lifetime of the instance.</p>
+        <p>Register listeners with <code>net.on(eventName, callback)</code>. Multiple listeners per event are supported and all will fire. There is no <code>off()</code> method — listeners persist for the lifetime of the instance. Use a flag variable to gate a callback if you need to stop handling an event.</p>
 
         <h3>Connection Events</h3>
         <div class="table-scroll">
           <table class="events-table">
             <tr><th>Event</th><th>Callback Args</th><th>Description</th></tr>
             <tr><td>connected</td><td><em>none</em></td><td>WebSocket opened successfully.</td></tr>
-            <tr><td>disconnected</td><td><em>none</em></td><td>WebSocket closed or lost. All state has been reset to initial values.</td></tr>
+            <tr><td>disconnected</td><td><em>none</em></td><td>WebSocket closed or lost. All state (<code>playerId</code>, <code>roomId</code>, <code>ownerId</code>, <code>isHost</code>) is fully reset before this fires.</td></tr>
             <tr><td>assignedId</td><td>(playerId: number)</td><td>Server assigned you a unique numeric ID. Fires immediately after <code>connected</code>.</td></tr>
-            <tr><td>error</td><td>(message: string)</td><td>Server error. Possible messages: <code>"Already in a room"</code>, <code>"Room does not exist"</code>, <code>"Room full"</code>, <code>"Room Closed"</code>.</td></tr>
+            <tr><td>error</td><td>(message: string)</td><td>Server error. Possible values: <code>"Already in a room"</code>, <code>"Room does not exist"</code>, <code>"Room full"</code>, <code>"Room Closed"</code>.</td></tr>
           </table>
         </div>
 
@@ -569,8 +570,8 @@ net.<span class="fn">on</span>(<span class="str">"binary"</span>, (fromId, buffe
         <div class="table-scroll">
           <table class="events-table">
             <tr><th>Event</th><th>Callback Args</th><th>Description</th></tr>
-            <tr><td>roomCreated</td><td>(roomId, playerId, metaData)</td><td>You created a room. <code>net.isHost</code> is already <code>true</code> when this fires.</td></tr>
-            <tr><td>roomJoined</td><td>(roomId, playerId, ownerId, maxClients, metaData)</td><td>You joined a room.</td></tr>
+            <tr><td>roomCreated</td><td>(roomId, metaData)</td><td>You created a room. <code>net.isHost</code> is already <code>true</code>. Your player ID is available as <code>net.playerId</code>.</td></tr>
+            <tr><td>roomJoined</td><td>(roomId, ownerId, maxClients, metaData)</td><td>You joined a room. Your player ID is available as <code>net.playerId</code>.</td></tr>
             <tr><td>leftRoom</td><td>(roomId)</td><td>You left via <code>leaveRoom()</code>. <code>net.roomId</code> is <code>null</code> after this fires.</td></tr>
             <tr><td>playerJoined</td><td>(playerId: number)</td><td>Another player joined your room.</td></tr>
             <tr><td>playerLeft</td><td>(playerId: number)</td><td>Another player left or disconnected. Clean up their state here.</td></tr>
@@ -583,8 +584,8 @@ net.<span class="fn">on</span>(<span class="str">"binary"</span>, (fromId, buffe
           <table class="events-table">
             <tr><th>Event</th><th>Callback Args</th><th>Description</th></tr>
             <tr><td>makeHost</td><td>(oldHostId: number)</td><td>You were promoted to host. <code>net.isHost</code> is already <code>true</code> when this fires.</td></tr>
-            <tr><td>reassignedHost</td><td>(newHostId, oldHostId)</td><td>Fired on all non-host players when the host changes. <code>net.ownerId</code> is already updated.</td></tr>
-            <tr><td>roomUpdated</td><td>(metaData: object)</td><td>Host called <code>updateMeta()</code>. Fires on all players. <code>metaData</code> is the full merged object.</td></tr>
+            <tr><td>reassignedHost</td><td>(newHostId, oldHostId)</td><td>Fired on all non-host players when host changes. <code>net.ownerId</code> is already updated.</td></tr>
+            <tr><td>roomUpdated</td><td>(metaData: object)</td><td>Host called <code>updateMeta()</code> or <code>setMeta()</code>. Fires on all players. <code>metaData</code> is the full resulting object.</td></tr>
             <tr><td>roomTagAdded</td><td>(tag, tags: string[])</td><td>Host added a tag. <code>tags</code> is the full updated array.</td></tr>
             <tr><td>roomTagRemoved</td><td>(tag, tags: string[])</td><td>Host removed a tag. <code>tags</code> is the full updated array.</td></tr>
           </table>
@@ -610,8 +611,19 @@ net.<span class="fn">on</span>(<span class="str">"binary"</span>, (fromId, buffe
         <div class="method-card">
           <div class="method-head"><span class="method-badge host">HOST</span><span class="method-sig">net.updateMeta(metaData)</span></div>
           <div class="method-body">
-            <p>Merges new key/value pairs into the room's metadata (existing keys not in the argument are preserved). Fires <code>roomUpdated</code> on all players with the full merged result.</p>
-            <pre><code>net.<span class="fn">updateMeta</span>({ name: <span class="str">"Round 2"</span>, map: <span class="str">"forest"</span> });</code></pre>
+            <p>Merges new key/value pairs into the room's metadata — existing keys not in the argument are preserved. Fires <code>roomUpdated</code> on all players with the full merged result.</p>
+            <pre><code><span class="cm">// { name: "My Lobby", map: "desert" } → { name: "My Lobby", map: "forest" }</span>
+net.<span class="fn">updateMeta</span>({ map: <span class="str">"forest"</span> });</code></pre>
+          </div>
+        </div>
+
+        <div class="method-card">
+          <div class="method-head"><span class="method-badge host">HOST</span><span class="method-sig">net.setMeta(metaData)</span></div>
+          <div class="method-body">
+            <p>Fully replaces the room's metadata with the provided object — all existing keys are discarded. Fires <code>roomUpdated</code> on all players with the new object.</p>
+            <div class="callout warn"><strong>Full replace</strong>Unlike <code>updateMeta()</code>, <code>setMeta()</code> discards all previous keys. If your <code>roomUpdated</code> handler merges into a local copy with <code>Object.assign</code>, replace the local copy entirely instead.</div>
+            <pre><code><span class="cm">// { name: "My Lobby", map: "desert" } → { map: "forest" }</span>
+net.<span class="fn">setMeta</span>({ map: <span class="str">"forest"</span> });</code></pre>
           </div>
         </div>
 
@@ -745,6 +757,9 @@ net.<span class="fn">addTag</span>(<span class="str">"ranked"</span>); <span cla
         <h3>Binary Protocol</h3>
         <p>When the server receives a binary (non-JSON) message, it prepends the sender's player ID as a 4-byte big-endian <code>uint32</code>, then forwards the combined buffer to all other clients in the room. The <code>binary</code> event on recipients provides the parsed <code>fromId</code> and the original buffer with the prepended bytes already stripped.</p>
 
+        <h3>In-Memory State</h3>
+        <p>All room and player state lives in the server process. A server restart wipes everything — rooms, players, and metadata. Do not build persistence assumptions on top of room state.</p>
+
         <h3>Room Filtering</h3>
         <p><code>listRooms()</code> excludes rooms tagged <code>"private"</code> or <code>"closed"</code>, and always filters by the instance's <code>game:&lt;gameName&gt;</code> tag so results are automatically scoped to your game.</p>
       </section>
@@ -773,7 +788,7 @@ document.<span class="fn">getElementById</span>(<span class="str">"joinBtn"</spa
   net.<span class="fn">joinRoom</span>(code);
 };
 
-net.<span class="fn">on</span>(<span class="str">"roomJoined"</span>, (roomId, playerId, ownerId, maxClients, metaData) => {
+net.<span class="fn">on</span>(<span class="str">"roomJoined"</span>, (roomId, ownerId, maxClients, metaData) => {
   console.<span class="fn">log</span>(<span class="str">`Joined room ${roomId}. Host: ${ownerId}. Lobby: "${metaData.name}"`</span>);
 });
 
@@ -786,7 +801,7 @@ net.<span class="fn">on</span>(<span class="str">"error"</span>,        (msg) =>
       <!-- EXAMPLE: RELAY -->
       <section class="section" id="example-relay">
         <h2>Example: Relaying State</h2>
-        <p>Broadcast your player's position and colour every frame, and apply incoming updates from other players.</p>
+        <p>Broadcast your player's position every frame and sync incoming state from others. Use <code>playerJoined</code> to re-send your state so newcomers can see you.</p>
         <div class="code-wrap">
           <div class="code-label">sync.js</div>
           <pre><code><span class="kw">const</span> players = {};
@@ -800,7 +815,7 @@ net.<span class="fn">on</span>(<span class="str">"roomJoined"</span>, () => {
 });
 
 net.<span class="fn">on</span>(<span class="str">"playerJoined"</span>, () => {
-  net.<span class="fn">sendRelay</span>(players[myId]); <span class="cm">// Send your state to the newcomer</span>
+  net.<span class="fn">sendRelay</span>(players[myId]); <span class="cm">// Re-send state so newcomer can see you</span>
 });
 
 net.<span class="fn">on</span>(<span class="str">"playerLeft"</span>, (id) => { <span class="kw">delete</span> players[id]; });
@@ -903,7 +918,7 @@ net.<span class="fn">on</span>(<span class="str">"tellOwner"</span>, (fromId, da
   }
 });
 
-<span class="cm">// If host drops mid-game, new host can resume authority</span>
+<span class="cm">// Handle host promotion mid-game</span>
 net.<span class="fn">on</span>(<span class="str">"makeHost"</span>, () => {
   console.<span class="fn">log</span>(<span class="str">"You are now the host"</span>);
 });
@@ -917,11 +932,49 @@ window.<span class="fn">addEventListener</span>(<span class="str">"beforeunload"
         </div>
       </section>
 
+      <!-- KNOWN LIMITATIONS -->
+      <section class="section" id="limitations">
+        <h2>Known Limitations</h2>
+
+        <h3>No existing players on join</h3>
+        <p><code>roomJoined</code> gives you the host ID and room metadata, but no list of other players already in the room. The recommended pattern is to relay your state immediately on join, and re-send it when a new player joins so they can see you:</p>
+        <pre><code>net.<span class="fn">on</span>(<span class="str">"roomJoined"</span>, () => {
+  net.<span class="fn">sendRelay</span>({ type: <span class="str">"hello"</span>, x: player.x, y: player.y }); <span class="cm">// user-defined type</span>
+});
+net.<span class="fn">on</span>(<span class="str">"playerJoined"</span>, () => {
+  net.<span class="fn">sendRelay</span>({ type: <span class="str">"hello"</span>, x: player.x, y: player.y }); <span class="cm">// Re-send state so newcomer can see you</span>
+});
+net.<span class="fn">on</span>(<span class="str">"relay"</span>, (fromId, data) => {
+  <span class="kw">if</span> (data.type === <span class="str">"hello"</span>) players[fromId] = { x: data.x, y: data.y };
+});</code></pre>
+        <p>This works well in practice but requires all existing players to be connected and listening. A future version may include a <code>players</code> array in the <code>roomJoined</code> payload.</p>
+
+        <h3>No reconnection</h3>
+        <p>If a player's connection drops, they receive a new <code>playerId</code> on reconnect and cannot reclaim their previous slot. Design your game state around players leaving and rejoining as new players.</p>
+
+        <h3>No <code>listRooms</code> timeout</h3>
+        <p><code>listRooms()</code> fires <code>roomList</code> when the server responds, but there is no built-in timeout if the response is slow or lost. Always register your listener before calling <code>listRooms()</code>, and implement a timeout in userland if needed:</p>
+        <pre><code><span class="kw">const</span> timeout = <span class="fn">setTimeout</span>(() => console.<span class="fn">warn</span>(<span class="str">"listRooms timed out"</span>), <span class="num">5000</span>);
+net.<span class="fn">on</span>(<span class="str">"roomList"</span>, (rooms) => {
+  <span class="fn">clearTimeout</span>(timeout);
+  <span class="cm">// handle rooms</span>
+});
+net.<span class="fn">listRooms</span>();</code></pre>
+
+        <h3>No <code>off()</code> method</h3>
+        <p>Listeners registered with <code>net.on()</code> persist for the lifetime of the instance. Use a flag variable to gate a callback if you need to stop handling an event.</p>
+
+        <h3>In-memory state only</h3>
+        <p>All room and player state lives in the server process. A server restart wipes everything. Do not build persistence assumptions on top of room state.</p>
+
+        <h3>Silent send when disconnected</h3>
+        <p>Calling any messaging or room method before <code>connected</code> fires, or after a disconnect, silently does nothing. Check the browser console for WebSocket errors if messages seem to be disappearing.</p>
+      </section>
+
     </main>
   </div>
 
   <script>
-    // Sidebar active link on scroll
     const sections = document.querySelectorAll('.section');
     const navLinks = document.querySelectorAll('.nav-group a');
 
@@ -937,7 +990,6 @@ window.<span class="fn">addEventListener</span>(<span class="str">"beforeunload"
 
     sections.forEach(s => obs.observe(s));
 
-    // Mobile menu
     const menuBtn = document.getElementById('menuBtn');
     const aside   = document.getElementById('aside');
     const overlay = document.getElementById('sidebarOverlay');
